@@ -1,0 +1,10 @@
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.log
+
+# Locally installed reference skills (managed by `npx skills add`).
+# Not part of the published plugin.
+.agents/skills/

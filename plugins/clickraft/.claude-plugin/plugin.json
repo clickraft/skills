@@ -1,0 +1,16 @@
+{
+  "name": "clickraft",
+  "displayName": "Clickraft",
+  "version": "0.1.0",
+  "description": "Generate images, manage assets, and author visual workflows with Clickraft.",
+  "author": {
+    "name": "Clickraft",
+    "email": "support@clickraft.ai",
+    "url": "https://clickraft.ai"
+  },
+  "homepage": "https://clickraft.ai",
+  "repository": "https://github.com/clickraft/skills",
+  "license": "MIT",
+  "keywords": ["clickraft", "images", "image-generation", "visual-workflows", "assets"],
+  "skills": "./skills/"
+}

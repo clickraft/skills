@@ -1,0 +1,20 @@
+{
+  "name": "clickraft-plugins",
+  "owner": {
+    "name": "Clickraft",
+    "email": "support@clickraft.ai"
+  },
+  "plugins": [
+    {
+      "name": "clickraft",
+      "description": "Generate images, manage assets, and author visual workflows with Clickraft.",
+      "author": {
+        "name": "Clickraft",
+        "email": "support@clickraft.ai"
+      },
+      "category": "productivity",
+      "source": "./plugins/clickraft",
+      "homepage": "https://github.com/clickraft/skills/tree/main/plugins/clickraft"
+    }
+  ]
+}

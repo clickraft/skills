@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "plugin-structure": {
+      "source": "anthropics/claude-plugins-public",
+      "sourceType": "github",
+      "skillPath": "plugins/plugin-dev/skills/plugin-structure/SKILL.md",
+      "computedHash": "1fd8152a20ae6b51e75064619cdf87db5d487c8514506774c66d2708001148a9"
+    },
+    "skill-creator": {
+      "source": "anthropics/claude-plugins-public",
+      "sourceType": "github",
+      "skillPath": "plugins/skill-creator/skills/skill-creator/SKILL.md",
+      "computedHash": "b122f4d1e91aa1d83027e050b5b37c3156203ee85458d7b1360bc48167c9e02a"
+    },
+    "skill-development": {
+      "source": "anthropics/claude-plugins-public",
+      "sourceType": "github",
+      "skillPath": "plugins/plugin-dev/skills/skill-development/SKILL.md",
+      "computedHash": "5f30c8717078c18ae0be71dcd3309a27730432e38b9d958b22ebb6ea33e5941a"
+    }
+  }
+}

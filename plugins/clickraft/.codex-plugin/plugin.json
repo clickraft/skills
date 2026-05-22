@@ -1,0 +1,26 @@
+{
+  "name": "clickraft",
+  "version": "0.1.0",
+  "description": "Generate images, manage assets, and author visual workflows with Clickraft.",
+  "author": {
+    "name": "Clickraft",
+    "email": "support@clickraft.ai",
+    "url": "https://clickraft.ai"
+  },
+  "homepage": "https://clickraft.ai",
+  "repository": "https://github.com/clickraft/skills",
+  "license": "MIT",
+  "keywords": ["clickraft", "images", "image-generation", "visual-workflows"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Clickraft",
+    "shortDescription": "Images and visual workflows",
+    "longDescription": "Generate images, manage assets, and author reusable visual workflows with the Clickraft CLI.",
+    "developerName": "Clickraft",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://clickraft.ai",
+    "privacyPolicyURL": "https://clickraft.ai/privacy",
+    "termsOfServiceURL": "https://clickraft.ai/terms"
+  }
+}

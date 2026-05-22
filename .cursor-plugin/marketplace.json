@@ -1,0 +1,17 @@
+{
+  "name": "clickraft-plugins",
+  "owner": {
+    "name": "Clickraft",
+    "email": "support@clickraft.ai"
+  },
+  "metadata": {
+    "description": "Official Clickraft plugins for image generation, asset management, and visual workflows."
+  },
+  "plugins": [
+    {
+      "name": "clickraft",
+      "source": "clickraft",
+      "description": "Generate images, manage assets, and author visual workflows with Clickraft."
+    }
+  ]
+}
