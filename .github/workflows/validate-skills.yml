@@ -1,0 +1,261 @@
+name: Validate Skills
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - ".claude-plugin/**"
+      - ".cursor-plugin/**"
+      - ".agents/plugins/**"
+      - "VERSION"
+      - "compatibility.json"
+      - ".github/workflows/validate-skills.yml"
+  push:
+    branches: [main]
+    paths:
+      - "plugins/**"
+      - ".claude-plugin/**"
+      - ".cursor-plugin/**"
+      - ".agents/plugins/**"
+      - "VERSION"
+      - "compatibility.json"
+      - ".github/workflows/validate-skills.yml"
+
+jobs:
+  validate:
+    name: Frontmatter, version sync, marketplace, references, self-containment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: pip install pyyaml --quiet
+
+      - name: Check 1 — frontmatter validation
+        run: |
+          set -euo pipefail
+          fail=0
+          for skill_md in plugins/*/skills/*/SKILL.md; do
+            skill_dir="$(dirname "$skill_md")"
+            skill_name="$(basename "$skill_dir")"
+            python3 - "$skill_md" "$skill_name" <<'PY' || fail=1
+          import sys, yaml, re, pathlib
+          path = pathlib.Path(sys.argv[1])
+          expected_name = sys.argv[2]
+          text = path.read_text()
+          m = re.match(r"^---\n(.*?)\n---\n", text, re.DOTALL)
+          if not m:
+              print(f"::error file={path}::no YAML frontmatter")
+              sys.exit(1)
+          fm = yaml.safe_load(m.group(1))
+          errors = []
+          if fm.get("name") != expected_name:
+              errors.append(f"name '{fm.get('name')}' != directory '{expected_name}'")
+          if not fm.get("version"):
+              errors.append("version missing")
+          if not fm.get("description"):
+              errors.append("description missing")
+          desc = fm.get("description", "") or ""
+          if len(desc) > 1024:
+              errors.append(f"description exceeds 1024 characters ({len(desc)})")
+          if "Use when:" not in desc:
+              errors.append("description missing 'Use when:' trigger phrases")
+          if "NOT for:" not in desc:
+              errors.append("description missing 'NOT for:' boundary")
+          for err in errors:
+              print(f"::error file={path}::{err}")
+          if errors:
+              sys.exit(1)
+          print(f"OK {path} — name={fm['name']} version={fm['version']}")
+          PY
+          done
+          [ "$fail" -eq 0 ]
+
+      - name: Check 2 — version sync across all manifests
+        run: |
+          set -euo pipefail
+          ROOT_VERSION="$(tr -d '[:space:]' < VERSION)"
+          echo "Root VERSION: $ROOT_VERSION"
+          fail=0
+
+          # Every SKILL.md frontmatter version
+          for skill_md in plugins/*/skills/*/SKILL.md; do
+            v=$(python3 -c "import yaml,re,pathlib; t=pathlib.Path('$skill_md').read_text(); m=re.match(r'^---\n(.*?)\n---\n', t, re.DOTALL); print(yaml.safe_load(m.group(1))['version'])")
+            if [ "$v" != "$ROOT_VERSION" ]; then
+              echo "::error file=$skill_md::version $v != VERSION $ROOT_VERSION"
+              fail=1
+            fi
+          done
+
+          # Every plugin.json
+          for f in plugins/*/.claude-plugin/plugin.json plugins/*/.codex-plugin/plugin.json plugins/*/.cursor-plugin/plugin.json; do
+            [ -f "$f" ] || continue
+            v=$(python3 -c "import json; print(json.load(open('$f'))['version'])")
+            if [ "$v" != "$ROOT_VERSION" ]; then
+              echo "::error file=$f::version $v != VERSION $ROOT_VERSION"
+              fail=1
+            fi
+          done
+
+          # .claude-plugin/marketplace.json — every plugins[*].version
+          count=$(python3 -c "import json; print(len(json.load(open('.claude-plugin/marketplace.json'))['plugins']))")
+          for idx in $(seq 0 $((count-1))); do
+            v=$(python3 -c "import json; p=json.load(open('.claude-plugin/marketplace.json'))['plugins'][$idx]; print(p.get('version','MISSING'))")
+            if [ "$v" != "$ROOT_VERSION" ]; then
+              echo "::error file=.claude-plugin/marketplace.json::plugins[$idx].version $v != VERSION $ROOT_VERSION"
+              fail=1
+            fi
+          done
+
+          # .cursor-plugin/marketplace.json — every plugins[*].version
+          count=$(python3 -c "import json; print(len(json.load(open('.cursor-plugin/marketplace.json'))['plugins']))")
+          for idx in $(seq 0 $((count-1))); do
+            v=$(python3 -c "import json; p=json.load(open('.cursor-plugin/marketplace.json'))['plugins'][$idx]; print(p.get('version','MISSING'))")
+            if [ "$v" != "$ROOT_VERSION" ]; then
+              echo "::error file=.cursor-plugin/marketplace.json::plugins[$idx].version $v != VERSION $ROOT_VERSION"
+              fail=1
+            fi
+          done
+
+          # .agents/plugins/marketplace.json — every plugins[*].source.ref == v<VERSION>
+          if [ -f ".agents/plugins/marketplace.json" ]; then
+            count=$(python3 -c "import json; print(len(json.load(open('.agents/plugins/marketplace.json'))['plugins']))")
+            for idx in $(seq 0 $((count-1))); do
+              ref=$(python3 -c "import json; p=json.load(open('.agents/plugins/marketplace.json'))['plugins'][$idx]; print(p.get('source',{}).get('ref','MISSING'))")
+              if [ "$ref" != "v$ROOT_VERSION" ]; then
+                echo "::error file=.agents/plugins/marketplace.json::plugins[$idx].source.ref $ref != v$ROOT_VERSION"
+                fail=1
+              fi
+            done
+          fi
+
+          # compatibility.json — skills_version (NOT min_cli_version / max_cli_version,
+          # which intentionally track CLI compat range, not skills version).
+          v=$(python3 -c "import json; print(json.load(open('compatibility.json'))['skills_version'])")
+          if [ "$v" != "$ROOT_VERSION" ]; then
+            echo "::error file=compatibility.json::skills_version $v != VERSION $ROOT_VERSION"
+            fail=1
+          fi
+
+          if [ "$fail" -eq 0 ]; then
+            echo "OK all version locations match $ROOT_VERSION"
+          fi
+          [ "$fail" -eq 0 ]
+
+      - name: Check 3 — marketplace listing completeness (autodiscovery-aware)
+        run: |
+          set -euo pipefail
+          # For each skill folder, confirm it is reachable from at least one marketplace.json
+          # via plugin autodiscovery: marketplace -> source -> plugin.json -> skills/.
+          python3 <<'PY'
+          import json, os, sys, pathlib, glob
+          repo_root = pathlib.Path(".").resolve()
+          marketplaces = [
+              ".claude-plugin/marketplace.json",
+              ".cursor-plugin/marketplace.json",
+              ".agents/plugins/marketplace.json",
+          ]
+          fail = False
+          for skill_md in glob.glob("plugins/*/skills/*/SKILL.md"):
+              skill_dir = pathlib.Path(skill_md).parent
+              skill_name = skill_dir.name
+              plugin_dir = skill_dir.parent.parent
+              reachable = False
+              for mp_path in marketplaces:
+                  if not pathlib.Path(mp_path).exists():
+                      continue
+                  mp = json.load(open(mp_path))
+                  mp_dir = pathlib.Path(mp_path).resolve().parent
+                  for p in mp.get("plugins", []):
+                      src = p.get("source")
+                      if isinstance(src, str):
+                          src_path = src
+                      elif isinstance(src, dict):
+                          src_path = src.get("path") or src.get("source")
+                      else:
+                          continue
+                      if not src_path:
+                          continue
+                      try:
+                          resolved = (mp_dir / src_path).resolve().relative_to(repo_root)
+                      except Exception:
+                          continue
+                      if pathlib.Path(str(resolved)) != plugin_dir:
+                          continue
+                      pj = repo_root / resolved / "plugin.json"
+                      if not pj.exists():
+                          continue
+                      pj_data = json.load(open(pj))
+                      skills_rel = pj_data.get("skills", "./skills/")
+                      skills_dir = (repo_root / resolved / skills_rel).resolve()
+                      if (skills_dir / skill_name / "SKILL.md").exists():
+                          reachable = True
+                          break
+                  if reachable:
+                      break
+              if not reachable:
+                  print(f"::error file={skill_md}::skill '{skill_name}' not reachable from any marketplace.json via autodiscovery")
+                  fail = True
+          if not fail:
+              print("OK every skill folder is reachable from at least one marketplace.json")
+          sys.exit(1 if fail else 0)
+          PY
+
+      - name: Check 4 — reference-link integrity
+        run: |
+          set -euo pipefail
+          fail=0
+          for skill_md in plugins/*/skills/*/SKILL.md; do
+            skill_dir="$(dirname "$skill_md")"
+            # Every markdown link of the form references/X.md must resolve
+            for ref in $(grep -oE 'references/[a-zA-Z0-9_./-]+\.md' "$skill_md" | sort -u || true); do
+              if [ ! -f "${skill_dir}/${ref}" ]; then
+                echo "::error file=$skill_md::references $ref but ${skill_dir}/${ref} missing"
+                fail=1
+              fi
+            done
+            # Every references/*.md file must be linked from SKILL.md
+            if [ -d "${skill_dir}/references" ]; then
+              for f in "${skill_dir}/references"/*.md; do
+                [ -f "$f" ] || continue
+                base="$(basename "$f")"
+                if ! grep -q "$base" "$skill_md"; then
+                  echo "::error file=$f::orphaned reference (not linked from $skill_md)"
+                  fail=1
+                fi
+              done
+            fi
+          done
+          if [ "$fail" -eq 0 ]; then
+            echo "OK all references resolve, no orphans"
+          fi
+          [ "$fail" -eq 0 ]
+
+      - name: Check 5 — no parent-dir references (self-containment)
+        run: |
+          set -euo pipefail
+          fail=0
+          for skill_md in plugins/*/skills/*/SKILL.md; do
+            skill_dir="$(dirname "$skill_md")"
+            if grep -nE '(^|[^./])\.\./' "$skill_md" >/dev/null 2>&1; then
+              echo "::error file=$skill_md::contains parent-dir (../) reference; skill must be self-contained"
+              grep -nE '(^|[^./])\.\./' "$skill_md" | sed "s|^|  $skill_md:|"
+              fail=1
+            fi
+            if [ -d "${skill_dir}/references" ]; then
+              if grep -rnE '(^|[^./])\.\./' "${skill_dir}/references/" >/dev/null 2>&1; then
+                echo "::error::${skill_dir}/references/ contains ../ paths that will break inside an installed bundle"
+                fail=1
+              fi
+            fi
+          done
+          if [ "$fail" -eq 0 ]; then
+            echo "OK no parent-dir references; skills are self-contained"
+          fi
+          [ "$fail" -eq 0 ]
