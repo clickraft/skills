@@ -153,6 +153,13 @@ jobs:
           set -euo pipefail
           # For each skill folder, confirm it is reachable from at least one marketplace.json
           # via plugin autodiscovery: marketplace -> source -> plugin.json -> skills/.
+          #
+          # Source-resolution conventions differ per marketplace:
+          #   - .claude-plugin/marketplace.json: `source` string, relative to REPO ROOT
+          #   - .cursor-plugin/marketplace.json: `source` may be a plain plugin name; we map
+          #     name -> plugins/<name>/ as a fallback
+          #   - .agents/plugins/marketplace.json: `source.path` relative to REPO ROOT
+          # We accept any candidate that resolves to a directory containing plugin.json + the skill.
           python3 <<'PY'
           import json, os, sys, pathlib, glob
           repo_root = pathlib.Path(".").resolve()
@@ -165,43 +172,58 @@ jobs:
           for skill_md in glob.glob("plugins/*/skills/*/SKILL.md"):
               skill_dir = pathlib.Path(skill_md).parent
               skill_name = skill_dir.name
-              plugin_dir = skill_dir.parent.parent
+              plugin_dir = pathlib.Path(*skill_dir.parts[:2])  # plugins/<plugin>
               reachable = False
               for mp_path in marketplaces:
                   if not pathlib.Path(mp_path).exists():
                       continue
                   mp = json.load(open(mp_path))
-                  mp_dir = pathlib.Path(mp_path).resolve().parent
                   for p in mp.get("plugins", []):
                       src = p.get("source")
                       if isinstance(src, str):
                           src_path = src
                       elif isinstance(src, dict):
-                          src_path = src.get("path") or src.get("source")
+                          src_path = src.get("path") or src.get("source") or src.get("url")
                       else:
                           continue
                       if not src_path:
                           continue
-                      try:
-                          resolved = (mp_dir / src_path).resolve().relative_to(repo_root)
-                      except Exception:
-                          continue
-                      if pathlib.Path(str(resolved)) != plugin_dir:
-                          continue
-                      pj = repo_root / resolved / "plugin.json"
-                      if not pj.exists():
-                          continue
-                      pj_data = json.load(open(pj))
-                      skills_rel = pj_data.get("skills", "./skills/")
-                      skills_dir = (repo_root / resolved / skills_rel).resolve()
-                      if (skills_dir / skill_name / "SKILL.md").exists():
-                          reachable = True
+                      # Try candidate resolutions (repo-root-relative, name-as-plugin-dir).
+                      candidates = []
+                      candidates.append((repo_root / src_path).resolve())
+                      # Plain plugin name fallback (Cursor convention)
+                      if "/" not in src_path and not src_path.startswith("."):
+                          candidates.append((repo_root / "plugins" / src_path).resolve())
+                      for cand in candidates:
+                          try:
+                              rel = cand.relative_to(repo_root)
+                          except Exception:
+                              continue
+                          if pathlib.Path(str(rel)) != plugin_dir:
+                              continue
+                          # plugin.json may live at the source root OR in any .*-plugin/ subdir
+                          pj_candidates = [cand / "plugin.json"]
+                          pj_candidates += sorted(cand.glob(".*-plugin/plugin.json"))
+                          for pj in pj_candidates:
+                              if not pj.exists():
+                                  continue
+                              pj_data = json.load(open(pj))
+                              skills_rel = pj_data.get("skills", "./skills/")
+                              skills_dir = (cand / skills_rel).resolve()
+                              if (skills_dir / skill_name / "SKILL.md").exists():
+                                  reachable = True
+                                  break
+                          if reachable:
+                              break
+                      if reachable:
                           break
                   if reachable:
                       break
               if not reachable:
                   print(f"::error file={skill_md}::skill '{skill_name}' not reachable from any marketplace.json via autodiscovery")
                   fail = True
+              else:
+                  print(f"OK {skill_md} reachable")
           if not fail:
               print("OK every skill folder is reachable from at least one marketplace.json")
           sys.exit(1 if fail else 0)
