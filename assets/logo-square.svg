@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#1d1d1d"/>
+  <g transform="translate(220 110) scale(0.24)">
+    <path d="M49.5 0 L300.5 285 L302 290.5 L131 286.5 L1.5 379 L1.5 352 Z" fill="#d6ff62"/>
+  </g>
+  <text x="256" y="380"
+        text-anchor="middle"
+        font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-weight="900"
+        font-size="68"
+        letter-spacing="-2"
+        fill="#ffffff">CLICKRAFT</text>
+</svg>

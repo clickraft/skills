@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1600 400">
+  <!-- CLICKR -->
+  <text x="30" y="290"
+        font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-weight="900"
+        font-size="260"
+        fill="#ffffff">
+    CLICKR
+  </text>
+
+  <!-- A המשולש -->
+  <g transform="translate(1020 55) scale(0.70)">
+    <path
+      d="M49.5 0 L300.5 285 L302 290.5 L131 286.5 L1.5 379 L1.5 352 Z"
+      fill="#ffffff" />
+  </g>
+
+  <!-- FT -->
+  <text x="1260" y="290"
+        font-family="system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+        font-weight="900"
+        font-size="260"
+        fill="#ffffff">
+    FT
+  </text>
+</svg>

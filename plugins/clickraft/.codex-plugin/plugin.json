@@ -21,6 +21,15 @@
     "capabilities": ["Read", "Write"],
     "websiteURL": "https://clickraft.ai",
     "privacyPolicyURL": "https://clickraft.ai/privacy",
-    "termsOfServiceURL": "https://clickraft.ai/terms"
+    "termsOfServiceURL": "https://clickraft.ai/terms",
+    "brandColor": "#d6ff62",
+    "composerIcon": "./assets/icon.svg",
+    "logo": "./assets/logo.png",
+    "defaultPrompt": [
+      "Generate a hero image for my landing page",
+      "Make a product photo on a clean background",
+      "Create a social media graphic with my brand colors",
+      "Generate an image using my brand model"
+    ]
   }
 }
