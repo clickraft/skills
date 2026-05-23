@@ -1,123 +1,50 @@
-# Install instructions for AI coding agents
+# Install for agents
 
-This file is read by AI coding agents to autonomously install and configure the Clickraft skills.
+A 5-step runbook for AI coding agents to install Clickraft Skills autonomously. Follow these steps in order; stop and surface to the user only at step 5.
 
-## Installation steps
+## 1. Detect host
 
-1. Verify the Clickraft CLI is installed:
-
-   ```bash
-   clickraft --version
-   ```
-
-   If not installed:
-
-   ```bash
-   npm install -g @clickraft/cli
-   ```
-
-2. Authenticate the CLI (interactive — the user completes a browser device-flow):
-
-   ```bash
-   clickraft login
-   ```
-
-3. Verify authentication:
-
-   ```bash
-   clickraft tokens list
-   ```
-
-4. The agent can now use the skills in `plugins/clickraft/skills/`.
-
-## Skill discovery
-
-Skills are markdown files under `plugins/clickraft/skills/<skill-name>/SKILL.md`. Each starts with a YAML frontmatter block (`name`, `description`, optional `version`) describing when the agent should use it. Use `description` trigger phrases to decide whether to load a skill.
-
-## CLI version compatibility
-
-Read `compatibility.json` for the required CLI version range. If the user's CLI is below `min_cli_version`, prompt them to upgrade:
-
-```bash
-npm install -g @clickraft/cli@latest
-```
-
-## JSON mode and error handling
-
-The Clickraft CLI emits a unified envelope when invoked with `--json`. Use `--json` for all programmatic invocations:
-
-```bash
-clickraft generate create --json --model-slug <slug> --prompt "<prompt>"
-```
-
-**Envelope shape:**
-
-```json
-{
-  "ok": true,
-  "data": { "...command-specific..." },
-  "error": null,
-  "meta": { "request_id": "...", "command": "...", "version": "...", "duration_ms": 0 }
-}
-```
-
-On failure:
-
-```json
-{
-  "ok": false,
-  "data": null,
-  "error": {
-    "code": "E_*",
-    "message": "...",
-    "retryable": false,
-    "retry_after_ms": null,
-    "request_id": "..."
-  },
-  "meta": { "...": "..." }
-}
-```
-
-Dispatch on `ok` (cheap boolean). When `error.retryable` is `true` and `error.retry_after_ms` is set, wait that many ms before retrying.
-
-## Exit codes
-
-| Exit | Meaning |
+| Agent | Install directory |
 |---|---|
-| 0 | Success |
-| 1 | Runtime / API / internal error |
-| 2 | Usage / validation (client-side) |
-| 3 | Auth required or expired |
-| 4 | Permission / policy denial |
-| 5 | Rate limit / quota / insufficient credits |
-| 6 | Network / timeout |
-| 7 | Conflict / idempotency mismatch |
-| 130 | SIGINT (user pressed Ctrl-C) |
+| Claude Code | `~/.claude/skills/` |
+| Cursor | `~/.cursor/plugins/` |
+| Codex | `~/.codex/plugins/` |
+| Other | `~/.<agent>/skills/` |
 
-Common error codes:
+If the host is unknown, default to `npx skills add clickraft/skills` — it writes to the right location for whichever agent is invoking it.
 
-| `error.code` | Likely cause | Fix |
-|---|---|---|
-| `E_AUTH_TOKEN_MISSING` | Not logged in | `clickraft login` |
-| `E_AUTH_TOKEN_EXPIRED` | 90-day token expired | `clickraft login` (re-issues) |
-| `E_AUTH_TOKEN_INVALID` | Token format / env prefix mismatch | `clickraft login` |
-| `E_INSUFFICIENT_CREDITS` | Account out of credits | User must add credits at clickraft.ai |
-| `E_RATE_LIMITED` | Server rate-limited the request | Wait `error.retry_after_ms` then retry |
-| `E_MODEL_NOT_FOUND` | Unknown `modelSlug` | List models with `clickraft brand-model list` |
-| `E_INPUT_INVALID_FORMAT` | Bad flag value | Fix the input per `error.message` |
-
-## Telemetry
-
-The CLI defaults telemetry OFF in non-interactive / CI / agent-detected contexts. To inspect what would be sent:
+## 2. Verify CLI
 
 ```bash
-clickraft telemetry inspect --json
+clickraft --version
 ```
 
-To force-disable:
+Must report `>= 0.1.2`. If the command is missing or out of date, go to step 3.
+
+## 3. Install CLI if missing
 
 ```bash
-export CLICKRAFT_DISABLE_TELEMETRY=1
+npm install -g @clickraft/cli
 ```
 
-`DO_NOT_TRACK=1` is also honored.
+## 4. Authenticate
+
+```bash
+clickraft login
+```
+
+This launches an interactive browser device flow. The user completes the OAuth handshake; the CLI stores a 90-day token. To confirm:
+
+```bash
+clickraft tokens list
+```
+
+## 5. Confirm + starter prompts
+
+Tell the user install is complete and offer three starter prompts they can try:
+
+- "Generate a hero image of a coffee mug on a wooden table"
+- "Make a product photo of these sneakers on a white background"
+- "Generate an image using my brand model"
+
+Do NOT explain internals (skill file paths, JSON envelopes, error codes). Just confirm install + give starter prompts. The envelope and error-code reference live at [docs/ENVELOPE.md](./docs/ENVELOPE.md) for when an agent hits a failure path.
