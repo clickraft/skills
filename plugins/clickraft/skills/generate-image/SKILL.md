@@ -60,9 +60,12 @@ Static catalog. Pick by intent. Pass the chosen slug as `--model-slug` to
 
 - **`nano-banana-2`** — default. Use for general image generation, character,
   stylized, photorealistic scenes, reference-driven work.
-- **`nano-banana-pro`** — use when the brief is harder: complex composition,
-  multiple subjects, fine detail, professional product photography. User
-  may say "high quality", "best quality", "professional".
+- **`nano-banana-pro`** — escalation only. Use when `nano-banana-2` was
+  tried and the output didn't land, OR when the user explicitly asks for
+  "high quality", "best quality", "professional", "Pro", or "better". Do
+  NOT pick Pro proactively from intent keywords like "product", "hero",
+  "studio", or "commercial" — those go to `nano-banana-2` first. Pro is
+  3-5× more expensive; default-first iteration is the right pattern.
 - **`gpt-image-2`** — use when the image must contain rendered text:
   typography, on-image text, headlines, labels, posters, logos with text,
   story/ad with copy. Trigger phrases (any language): "with text", "with
@@ -70,7 +73,8 @@ Static catalog. Pick by intent. Pass the chosen slug as `--model-slug` to
   reads", explicit quoted strings the user wants rendered.
 
 When two could apply, prefer `gpt-image-2` if text rendering is required;
-otherwise prefer `nano-banana-2` for speed and consistency.
+otherwise prefer `nano-banana-2` for speed and cost. Pro is reserved for
+explicit user request or retry after a failed `nano-banana-2` attempt.
 
 When the user names a model explicitly, use that slug — skip the decisions
 above. Pass any slug the user names directly to the CLI; the CLI validates
