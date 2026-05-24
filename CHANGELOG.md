@@ -2,6 +2,24 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-05-24
+
+### Added
+- `## Model selection` section in `generate-image/SKILL.md` — static catalog
+  of three models with intent-based selection: `nano-banana-2` (default),
+  `nano-banana-pro` (hard briefs), `gpt-image-2` (typography / text-in-image).
+- `## Intent to aspect ratio` section — resolves aspect ratio from intent
+  keywords (story=9:16, hero=16:9, square=1:1, etc.) without asking the user.
+- Language detection rule in UX Rules — respond in user's language, prompts
+  to CLI stay English.
+
+### Notes
+- Cost-handling integration with `clickraft generate cost` deferred to v0.3.1
+  pending the endpoint and CLI subcommand.
+- Other slugs in `ai_models` (`nano-banana`, `gpt-image-1.5`, `gpt-image-1.5-hd`)
+  intentionally not surfaced in the skill. The agent uses only the three
+  curated defaults; users can name any slug explicitly to override.
+
 ## [0.2.0] — 2026-05-23
 
 ### Added
