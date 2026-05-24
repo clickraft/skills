@@ -2,6 +2,18 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] — 2026-05-24
+
+### Fixed
+- `nano-banana-pro` was being picked proactively for broad intents like
+  "hero image" or "product photo", causing 3-5× cost overspend. Now Pro is
+  reactive escalation only — used after a failed `nano-banana-2` attempt
+  or on explicit user request. Matches higgsfield's `model-catalog.md:19`
+  pattern: "Pick when 2 isn't getting there."
+- Removed explicit "Resolution defaults to 2k" rule from `## Intent to
+  aspect ratio`. The CLI handles 2k defaulting silently; the rule was
+  noise. If the user explicitly asks for 4k, the agent passes it through.
+
 ## [0.3.0] — 2026-05-24
 
 ### Added

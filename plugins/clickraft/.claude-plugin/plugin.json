@@ -1,7 +1,7 @@
 {
   "name": "clickraft",
   "displayName": "Clickraft",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Generate images, manage assets, and author visual workflows with Clickraft.",
   "author": {
     "name": "Clickraft",
