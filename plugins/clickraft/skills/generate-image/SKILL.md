@@ -15,7 +15,7 @@ description: |
 
   Chain with: none in Wave 1. Future: chain with `clickraft-product-shoot` for
   multi-image product workflows (v0.2.x+).
-argument-hint: "[prompt] [--model-slug <slug>] [--aspect-ratio <W:H>] [--reference-image-url <url>]"
+argument-hint: "[prompt] [--model-slug <slug>] [--aspect-ratio <W:H>] [--reference-image <url>]"
 allowed-tools: Bash(clickraft:*)
 ---
 
