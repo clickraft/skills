@@ -95,15 +95,11 @@ listed keywords.
 | portrait | 3:4 |
 | landscape, widescreen | 4:3 |
 
-Resolution defaults to 2k. Use 4k only if the user explicitly asks for
-high quality, large size, or "4k".
-
 Override rules:
 - If the user names an aspect ratio or dimensions explicitly (e.g. "1024x1536",
   "9:16", "vertical 2:3"), use that. Skip the table.
 - If the intent doesn't match any listed keyword, ask ONE labeled-options
-  question: `[1:1 (square) / 9:16 (vertical) / 16:9 (wide)]`. Do not ask
-  about resolution unless the user mentioned size.
+  question: `[1:1 (square) / 9:16 (vertical) / 16:9 (wide)]`.
 
 Pass the chosen aspect ratio as `--aspect-ratio <W:H>` to `clickraft generate
 create`.
