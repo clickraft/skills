@@ -72,6 +72,34 @@ When the user names a model explicitly, use that slug — skip the decisions
 above. Pass any slug the user names directly to the CLI; the CLI validates
 it.
 
+## Intent to aspect ratio
+
+Resolve the aspect ratio from the user's intent. Default to the listed
+value. Do NOT ask the user about aspect ratio if intent is clear from the
+listed keywords.
+
+| Intent keywords | Aspect ratio |
+|---|---|
+| story, Instagram story, vertical, reel cover | 9:16 |
+| Instagram post, square, social square | 1:1 |
+| hero, banner, website header, landing page, email header | 16:9 |
+| Pinterest, pin, vertical pin | 2:3 |
+| portrait | 3:4 |
+| landscape, widescreen | 4:3 |
+
+Resolution defaults to 2k. Use 4k only if the user explicitly asks for
+high quality, large size, or "4k".
+
+Override rules:
+- If the user names an aspect ratio or dimensions explicitly (e.g. "1024x1536",
+  "9:16", "vertical 2:3"), use that. Skip the table.
+- If the intent doesn't match any listed keyword, ask ONE labeled-options
+  question: `[1:1 (square) / 9:16 (vertical) / 16:9 (wide)]`. Do not ask
+  about resolution unless the user mentioned size.
+
+Pass the chosen aspect ratio as `--aspect-ratio <W:H>` to `clickraft generate
+create`.
+
 ## Prerequisites
 
 1. CLI installed and authenticated:
