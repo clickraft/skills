@@ -36,6 +36,10 @@ Read `data.resultUrl` from the JSON envelope and surface it to the user.
 3. Don't batch-ask. Pick the default for the user's modality and submit. Ask one thing only if a required field is genuinely missing.
 4. Don't pre-estimate cost or downgrade models silently — see "Cost handling".
 5. Polling is silent. Use the default sync mode (no `--no-wait`). No status narration.
+6. Detect the user's language and respond in it. The prompt sent to the
+   CLI via `--prompt "..."` stays English regardless of the user's language —
+   translate intent (style, composition, scene, mood, lighting) to English
+   before submitting. CLI flags stay English.
 
 ## When to ask
 
