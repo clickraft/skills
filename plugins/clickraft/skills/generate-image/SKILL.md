@@ -49,6 +49,29 @@ Ask one labeled-options question ONLY when:
 
 Never ask about aspect ratio, resolution, or duration — default and submit. The user re-runs with overrides if needed.
 
+## Model selection
+
+Static catalog. Pick by intent. Pass the chosen slug as `--model-slug` to
+`clickraft generate create`.
+
+- **`nano-banana-2`** — default. Use for general image generation, character,
+  stylized, photorealistic scenes, reference-driven work.
+- **`nano-banana-pro`** — use when the brief is harder: complex composition,
+  multiple subjects, fine detail, professional product photography. User
+  may say "high quality", "best quality", "professional".
+- **`gpt-image-2`** — use when the image must contain rendered text:
+  typography, on-image text, headlines, labels, posters, logos with text,
+  story/ad with copy. Trigger phrases (any language): "with text", "with
+  the words", "with caption", "with title", "with headline", "label that
+  reads", explicit quoted strings the user wants rendered.
+
+When two could apply, prefer `gpt-image-2` if text rendering is required;
+otherwise prefer `nano-banana-2` for speed and consistency.
+
+When the user names a model explicitly, use that slug — skip the decisions
+above. Pass any slug the user names directly to the CLI; the CLI validates
+it.
+
 ## Prerequisites
 
 1. CLI installed and authenticated:
