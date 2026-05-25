@@ -2,6 +2,33 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] -- 2026-05-25
+
+### Added
+- `## Brand model context` section in `generate-image/SKILL.md` -- documents
+  `--brand-model <uuid>:<pose>` flag (repeatable, max 3), pose options,
+  discovery via `clickraft brand-model list --json`, and when-to-ask guidance.
+- `## Product context` section -- documents `--product <uuid>:<imageId>` flag
+  (repeatable, server-enforced cap), catalog search via
+  `clickraft product list --json --search`, and when-to-ask guidance.
+- `## Reference image context` section -- documents `--reference-image`
+  semantics including local-path auto-upload, max 8, and distinction from
+  `--brand-model` and `--product`.
+- `## Combined: brand model with product` section -- workflow for brand model
+  wearing/holding a product, pose selection guidance, prompt engineering hints.
+
+### Fixed
+- Removed ghost flag `--reference-image-url` from the optional flags table.
+  The CLI only has `--reference-image`; the `-url` variant never existed.
+
+### Changed
+- Minimum CLI version bumped from `0.1.2` to `0.6.0` in Prerequisites and
+  Compatibility sections.
+- `argument-hint` updated to reflect the verified flag surface (`--brand-model`,
+  `--product`, `--reference-image`).
+- All manifests and VERSION bumped to `0.4.0`.
+- `compatibility.json` `min_cli_version` set to `0.6.0`.
+
 ## [0.3.1] — 2026-05-24
 
 ### Fixed

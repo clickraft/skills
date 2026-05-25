@@ -1,6 +1,6 @@
 {
-  "skills_version": "0.3.1",
-  "min_cli_version": "0.1.0",
+  "skills_version": "0.4.0",
+  "min_cli_version": "0.6.0",
   "max_cli_version": null,
   "manifest_schema_version": 1,
   "compatibility_notes": "Tracks the CLI's first public release. Major bumps in either CLI or skills semver require a bump to manifest_schema_version."

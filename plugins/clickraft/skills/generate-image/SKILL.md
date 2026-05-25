@@ -1,5 +1,5 @@
 ---
-version: 0.3.1
+version: 0.4.0
 name: generate-image
 description: |
   Generate a single image with Clickraft. Invokes `clickraft generate create` against
@@ -15,7 +15,7 @@ description: |
 
   Chain with: none in Wave 1. Future: chain with `clickraft-product-shoot` for
   multi-image product workflows (v0.2.x+).
-argument-hint: "[prompt] [--model-slug <slug>] [--aspect-ratio <W:H>] [--reference-image <url>]"
+argument-hint: "[prompt] [--model-slug <slug>] [--aspect-ratio <W:H>] [--brand-model <uuid>:<pose>] [--product <uuid>:<imageId>] [--reference-image <url|path>]"
 allowed-tools: Bash(clickraft:*)
 ---
 
@@ -104,12 +104,130 @@ Override rules:
 Pass the chosen aspect ratio as `--aspect-ratio <W:H>` to `clickraft generate
 create`.
 
+## Brand model context
+
+A brand model is a trained identity -- a person's face, body, or style -- saved
+in the user's Clickraft account. It is distinct from `--model-slug`, which
+selects the generation engine (e.g. `nano-banana-2`). Brand models inject a
+consistent identity into the generated image so the same person appears across
+multiple outputs.
+
+Flag: `--brand-model <uuid>` or `--brand-model <uuid>:<pose>`. Repeatable, up
+to 3 per call.
+
+Poses: `front`, `3/4-right`, `right`, `left`, `3/4-left`, `back`, `approved`.
+When omitted, the server picks the best available pose.
+
+Discovery -- resolve a named brand model to its UUID:
+
+```bash
+clickraft brand-model list --json
+```
+
+Read `data.items[].id` and `data.items[].name`.
+
+When to ask: the user says "my model", "use my face", or names a brand model by
+name but not UUID. List brand models and ask which one.
+
+When to act: the user provides a UUID directly, or only one brand model exists
+in the account (use it without asking).
+
+When to skip: generic prompts with no identity reference ("a cat on a roof")
+don't need a brand model.
+
+```bash
+clickraft generate create --json \
+  --model-slug nano-banana-2 \
+  --brand-model 8f3a1b2c-...:front \
+  --prompt "portrait in a coffee shop, warm lighting"
+```
+
+## Product context
+
+A product is a catalog item with reference images (e.g. a shoe, a bottle, a
+handbag) stored in the user's Clickraft account. The server uses the reference
+images to render the product faithfully in the output.
+
+Flag: `--product <uuid>` or `--product <uuid>:<imageId>`. Repeatable; the
+server enforces a per-model cap on how many products a single call accepts.
+
+Discovery -- search the product catalog:
+
+```bash
+clickraft product list --json --search "red sneaker"
+```
+
+Read `data.items[].id` and `data.items[].name`.
+
+When to ask: the user references a product by name ("the red sneaker",
+"my latest shoe") but hasn't provided a UUID. Search the catalog and confirm.
+
+When to act: the user provides a UUID directly, or the search returns exactly
+one match.
+
+When to skip: no product is mentioned in the prompt.
+
+```bash
+clickraft generate create --json \
+  --model-slug nano-banana-2 \
+  --product a1b2c3d4-... \
+  --prompt "product on a marble countertop, soft studio lighting"
+```
+
+## Reference image context
+
+Use `--reference-image` when the user supplies an arbitrary visual reference
+that is not a trained brand model or a catalog product -- mood boards, style
+references, composition guides, or user-uploaded photos.
+
+Flag: `--reference-image <url|path>`. Repeatable, up to 8 per call.
+
+Local file paths are auto-uploaded by the CLI (via the upload primitive) before
+the generation request is sent. URLs must be publicly accessible or
+GCS-signed URLs from a previous `clickraft upload`.
+
+How it differs from the other flags:
+- `--brand-model` -- for trained identities (faces, personas). The server
+  knows the identity and can render it from any pose.
+- `--product` -- for catalog items with curated reference images managed in the
+  Clickraft account.
+- `--reference-image` -- for everything else: arbitrary URLs, local files, or
+  images the user just pasted or uploaded.
+
+```bash
+clickraft generate create --json \
+  --model-slug nano-banana-2 \
+  --reference-image ./mood-board.png \
+  --reference-image "https://example.com/style-ref.jpg" \
+  --prompt "fashion editorial, same color palette as references"
+```
+
+## Combined: brand model with product
+
+The most common advanced workflow: a brand model wearing or holding a product.
+Both flags in a single call.
+
+The flags handle identity and product; the prompt handles composition. Keep the
+prompt focused on scene, pose, and lighting rather than re-describing who or
+what -- the flags already carry that context.
+
+Pose selection: for clothing, prefer `front` or `3/4-right` so the garment is
+visible. For accessories (bags, watches), `3/4-right` or `right` works well.
+
+```bash
+clickraft generate create --json \
+  --model-slug nano-banana-2 \
+  --brand-model 8f3a1b2c-...:front \
+  --product a1b2c3d4-... \
+  --prompt "walking down a city street at golden hour, wearing the product"
+```
+
 ## Prerequisites
 
 1. CLI installed and authenticated:
 
    ```bash
-   clickraft --version       # must report >= 0.1.2
+   clickraft --version       # must report >= 0.6.0
    clickraft tokens list     # must return at least one active token
    ```
 
@@ -140,8 +258,9 @@ clickraft generate create \
 |---|---|
 | `--aspect-ratio <W:H>` | e.g. `16:9`, `1:1` |
 | `--resolution <WxH>` | e.g. `1024x1024` |
-| `--reference-image-url <url>` | Single reference image |
-| `--reference-image <url>` | Repeatable, up to 8 (multi-reference) |
+| `--brand-model <uuid>:<pose>` | Brand model identity; repeatable, up to 3. See "Brand model context" |
+| `--product <uuid>:<imageId>` | Product catalog item; repeatable. See "Product context" |
+| `--reference-image <url\|path>` | Arbitrary reference; repeatable, up to 8. Local paths auto-uploaded. See "Reference image context" |
 
 ## Response envelope
 
@@ -166,7 +285,7 @@ Read the final image URL from `data.resultUrl`. `data.thumbnailUrl` is faster to
 
 ## Async pattern
 
-If the user wants a job ID without waiting:
+If the user wants a job ID without waiting (equivalent: `--async`):
 
 ```bash
 clickraft generate create --json --no-wait --model-slug <slug> --prompt "..."
@@ -207,4 +326,4 @@ Full envelope + exit-code + error-code reference: [docs/ENVELOPE.md on GitHub](h
 
 ## Compatibility
 
-Requires `@clickraft/cli` `>= 0.1.2`. The CLI's `compatibility.json` declares the minimum skills version it supports; this skill's behaviour is locked against CLI `0.1.2` envelope semantics.
+Requires `@clickraft/cli` `>= 0.6.0`. The CLI's `compatibility.json` declares the minimum skills version it supports; this skill's behaviour is locked against CLI `0.6.0` envelope semantics.

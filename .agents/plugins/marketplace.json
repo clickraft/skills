@@ -10,7 +10,7 @@
         "source": "git-subdir",
         "url": "https://github.com/clickraft/skills.git",
         "path": "./plugins/clickraft",
-        "ref": "v0.3.1"
+        "ref": "v0.4.0"
       },
       "policy": {
         "installation": "AVAILABLE",
