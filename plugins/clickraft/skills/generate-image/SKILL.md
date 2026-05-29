@@ -1,5 +1,5 @@
 ---
-version: 0.4.0
+version: 0.4.1
 name: generate-image
 description: |
   Generate a single image with Clickraft. Invokes `clickraft generate create` against
