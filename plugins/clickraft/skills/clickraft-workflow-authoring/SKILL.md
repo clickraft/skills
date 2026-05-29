@@ -129,7 +129,7 @@ Every apply is preconditioned on the current `canvas_rev` (optimistic concurrenc
   (op count) and `data.workflow` (the updated graph, with **read-shape** edges).
 - `workflow get` returns the rev as **`data.canvas_rev`** (snake_case) at the top level,
   plus `data.nodes` and `data.edges`.
-- On `409 CANVAS_REV_MISMATCH` (a collaborator edited the canvas): re-fetch with
+- On a `409` / `E_CANVAS_REV_MISMATCH` (a collaborator edited the canvas): re-fetch with
   `workflow get`, rebuild against the new state, retry. `--auto-rev` does this once for you.
 - **`--dry-run` is LOCAL ONLY** — it prints the payload and exits without contacting the
   server. It does **not** validate ops. The only real validation is a live `apply`.
@@ -251,8 +251,8 @@ summary; the actionable detail (which op, which field) is in the diagnostics arr
 | `error.code` | `E_WORKFLOW_VALIDATION_FAILED` | A batch op failed authorize/validate. Read `error.details.diagnostics[]` for the offending op + reason; fix and re-apply. |
 | `diagnostics[].code` | `FIELD_NOT_ALLOWED` | You set a `data.*` field that isn't writable on that node type (e.g. `image.imageUrl`). Remove it; that content is user-set in the canvas. |
 | `diagnostics[].code` | `CANONICAL_ALIAS_CONFLICT` | You sent a deprecated alias (`title`/`config`/`ui`) alongside its canonical key. Send canonical only. |
-| `error.code` | `CANVAS_REV_MISMATCH` (409) | The canvas changed under you. Re-`workflow get`, rebuild, retry. `--auto-rev` retries once automatically. |
-| `error.code` | `CANVAS_REV_REQUIRED` (428) | You applied without a rev. Use `--auto-rev` (or `--canvas-rev <n>`). |
+| `error.code` | `E_CANVAS_REV_MISMATCH` (409) | The canvas changed under you. Re-`workflow get`, rebuild, retry. `--auto-rev` retries once automatically. |
+| `error.code` | `E_INPUT_INVALID_FORMAT` | Applied without a canvas rev. Add `--auto-rev` (or `--canvas-rev <n>`); the CLI rejects a missing rev client-side before it reaches the server. |
 | `error.code` | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. |
 
 The validation-error hint may say "Run `workflow validate`" — **there is no such command**;
