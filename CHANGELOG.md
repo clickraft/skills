@@ -2,6 +2,25 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] -- 2026-05-29
+
+### Added
+- `clickraft-workflow-authoring` skill — teaches agents to author multi-node
+  Clickraft workflow graphs from a natural-language request: discover node types
+  (`nodes list` / `nodes describe`), create a workflow, assemble `add_node` /
+  `add_edge` ops in the canonical write shape, and apply with `--auto-rev`.
+  - Carries the mutation op schema and the edge **write** shape (`from/to`),
+    which are not discoverable from `workflow apply --help`.
+  - `references/op-schema.md` — the six-op schema verbatim from source
+    (md5-pinned), plus the edge write-vs-read mapping.
+  - `references/node-catalog.md` — node-type landscape, wire-`type`-string vs
+    directory-name gotchas, and the agent-writable-field model.
+  - Worked example: reference image → 5 Instagram ads (`batchCount: 5`, `4:5`).
+
+### Changed
+- All manifests and VERSION bumped to `0.4.1`.
+- `compatibility.json` `skills_version` set to `0.4.1`.
+
 ## [0.4.0] -- 2026-05-25
 
 ### Added

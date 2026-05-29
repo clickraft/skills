@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "clickraft",
-      "version": "0.4.0",
+      "version": "0.4.1",
       "source": "clickraft",
       "description": "Generate images, manage assets, and author visual workflows with Clickraft."
     }
