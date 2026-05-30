@@ -2,6 +2,18 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.2] — 2026-05-30
+
+### Added
+- `clickraft-workflow-authoring` skill — node containment via `parentId` / `expandParent`
+  on `add_node`. Documents the absolute-position contract, server-side relative conversion,
+  no-nesting rule, and `INVALID_PARENT_REF` / `NESTED_GROUP_FORBIDDEN` diagnostics.
+  Updates `references/op-schema.md` and `references/node-catalog.md`.
+
+### Changed
+- All manifests and VERSION bumped to `0.4.2`.
+- `compatibility.json` `skills_version` set to `0.4.2`.
+
 ## [0.4.1] -- 2026-05-29
 
 ### Added
