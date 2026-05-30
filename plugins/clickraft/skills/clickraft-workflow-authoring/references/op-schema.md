@@ -1,8 +1,8 @@
 # Workflow mutation op schema (reference)
 
-**Verified:** 2026-05-29 against CLI `0.8.0` (staging) and server source.
+**Verified:** 2026-05-30 against CLI `0.8.0` (staging) and server source.
 **Source of truth:** `clickraft/lib/agents/schemas/workflows.ts`
-— **69 lines, md5 `e44f70f5421472312d287b83531bc477`**.
+— **74 lines, md5 `9ad3839c2c98b8a260122e771a3653d9`**.
 The exported write schema is `WorkflowMutateSchema`; the op union is `MutationOpSchema`.
 
 > This file is a snapshot. If it drifts from the CLI's behavior, the server source wins —
@@ -24,7 +24,7 @@ The exported write schema is `WorkflowMutateSchema`; the op union is `MutationOp
 
 ## The six ops
 
-Discriminated union on `op` (snake_case literal). Verbatim from source (lines 20–57):
+Discriminated union on `op` (snake_case literal). Verbatim from source (lines 20–67):
 
 ```ts
 const MutationOpSchema = z.discriminatedUnion('op', [
@@ -37,7 +37,14 @@ const MutationOpSchema = z.discriminatedUnion('op', [
       data: z.record(z.string(), z.unknown()).optional(),
       position: z.object({ x: z.number(), y: z.number() }).optional(),
       inputs: z.record(z.string(), z.unknown()).optional(),
-      // DEPRECATED aliases — DO NOT USE. Removal pending.
+      // Containment: place this node inside an existing frame. The agent sends an
+      // ABSOLUTE position; the worker converts it to a provisional frame-relative
+      // position at apply time (see workers/collaboration/src/agent-mutations.ts).
+      parentId: z.string().optional(),
+      expandParent: z.boolean().optional(),
+      // DEPRECATED: agent-shape aliases. Normalized to canonical at the
+      // worker boundary (see workers/collaboration/src/agent-normalize.ts).
+      // Removal pending Step 1b.
       title: z.string().optional(),
       config: z.record(z.string(), z.unknown()).optional(),
       ui: z.object({ position: z.object({ x: z.number(), y: z.number() }).optional() }).optional(),
@@ -72,7 +79,7 @@ export const WorkflowMutateSchema = z.object({
 
 | op | required | notes |
 |---|---|---|
-| `add_node` | `node.id`, `node.type` | optional `node.data`, `node.position{x,y}`, `node.inputs` |
+| `add_node` | `node.id`, `node.type` | optional `node.data`, `node.position{x,y}`, `node.inputs`; `node.parentId` + `node.expandParent` for frame containment (see "Node containment" below) |
 | `add_edge` | `edge.id`, `edge.from{node,output}`, `edge.to{node,input}` | see edge shape below |
 | `update_node` | `node_id`, `patch` | effective patch keys: `data`, `position` |
 | `remove_node` | `node_id` | also removes its connected edges |
@@ -104,6 +111,25 @@ specific keys:
 - `update_meta.patch` → `name`, `description`, `tags`, `declared_params`.
 
 Other keys in a `patch` are silently ignored.
+
+### Node containment (`parentId` / `expandParent`)
+
+`parentId` and `expandParent` are optional fields on the **`node` object** of an `add_node`
+op (not on the op itself). They place the new node inside a `frame`:
+
+- **`parentId`** — the id of a node whose `type` is **`frame`**. The frame may already exist in
+  the workflow, or be added by an earlier op in the **same batch** (the parent is resolved
+  against intra-batch state, so frame in op N, child in op N+1 works).
+- Put the child's **absolute** canvas position in `node.position`. The **server** converts it
+  to a frame-relative offset (`childAbs − frameOrigin`) — do **not** compute the relative
+  position yourself. Verified live: abs `(2120, 1590)` into a frame at `(2000, 1500)` was
+  stored as relative `(120, 90)`.
+- **`expandParent`** — set it to `false`. **Omit `extent`** entirely (do not send
+  `extent: 'parent'`).
+- **Frames cannot be nested** — a `frame` given a `parentId` is rejected.
+
+Two diagnostics guard this (422 `E_WORKFLOW_VALIDATION_FAILED`, nothing applied):
+`INVALID_PARENT_REF` and `NESTED_GROUP_FORBIDDEN` — see "Validation & authorization" below.
 
 ## Edge WRITE shape vs READ shape
 
@@ -145,6 +171,9 @@ A batch passes through normalize → authorize → validate. Failures come back 
 - `FIELD_NOT_ALLOWED` — a `data.*` key not in the node's writable allowlist
   (`label`, `hideHeader`, plus the node's `agentWritableFields`). Path points at the op/field.
 - `CANONICAL_ALIAS_CONFLICT` — canonical + deprecated alias on one op.
+- `INVALID_PARENT_REF` — `node.parentId` references a missing node, or a node that is not a
+  `frame`. Path points at `/operations/<i>/node/parentId`.
+- `NESTED_GROUP_FORBIDDEN` — a `frame` parented to another `frame` (frames can't be nested).
 - Port/graph validation — an edge endpoint that isn't a real output→input pair, or a
   missing node, fails here too.
 

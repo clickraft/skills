@@ -1,5 +1,5 @@
 ---
-version: 0.4.1
+version: 0.4.2
 name: clickraft-workflow-authoring
 description: |
   Author a multi-node Clickraft workflow graph from a natural-language request. Creates a
@@ -251,6 +251,8 @@ summary; the actionable detail (which op, which field) is in the diagnostics arr
 | `error.code` | `E_WORKFLOW_VALIDATION_FAILED` | A batch op failed authorize/validate. Read `error.details.diagnostics[]` for the offending op + reason; fix and re-apply. |
 | `diagnostics[].code` | `FIELD_NOT_ALLOWED` | You set a `data.*` field that isn't writable on that node type (e.g. `image.imageUrl`). Remove it; that content is user-set in the canvas. |
 | `diagnostics[].code` | `CANONICAL_ALIAS_CONFLICT` | You sent a deprecated alias (`title`/`config`/`ui`) alongside its canonical key. Send canonical only. |
+| `diagnostics[].code` | `INVALID_PARENT_REF` | `node.parentId` points at a missing node, or one that isn't a `frame`. Point it at a real `frame` id. |
+| `diagnostics[].code` | `NESTED_GROUP_FORBIDDEN` | You parented a `frame` to another `frame`. Frames can't be nested. |
 | `error.code` | `E_CANVAS_REV_MISMATCH` (409) | The canvas changed under you. Re-`workflow get`, rebuild, retry. `--auto-rev` retries once automatically. |
 | `error.code` | `E_INPUT_INVALID_FORMAT` | Applied without a canvas rev. Add `--auto-rev` (or `--canvas-rev <n>`); the CLI rejects a missing rev client-side before it reaches the server. |
 | `error.code` | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. |
@@ -260,15 +262,43 @@ ignore that hint and read the `diagnostics` array instead.
 
 Full envelope + exit-code + error-code reference: [docs/ENVELOPE.md on GitHub](https://github.com/clickraft/skills/blob/main/docs/ENVELOPE.md).
 
+## Grouping: put a node inside a frame
+
+To place a node inside a `frame`, add the frame (or reference an existing frame id) and add the
+child with `parentId` in the **same batch**. `parentId` and `expandParent` are optional fields
+on the **`node` object**, not on the op:
+
+```json
+[
+  { "op": "add_node", "node": { "id": "grp", "type": "frame",
+      "position": { "x": 2000, "y": 1500 } } },
+  { "op": "add_node", "node": { "id": "gen", "type": "imageGeneration",
+      "position": { "x": 2120, "y": 1590 },
+      "parentId": "grp", "expandParent": false,
+      "data": { "aspectRatio": "4:5" } } }
+]
+```
+
+Rules the server enforces:
+
+- `parentId` is the id of a **`frame`** node — already in the workflow, or added by an earlier
+  op in the same batch (as above).
+- Send the child's **absolute** canvas position. The server converts absolute → relative for
+  you (child − frame origin); **never compute the relative offset yourself**.
+- Set `expandParent: false` and **omit `extent`**. Frames **cannot be nested**.
+
+A `parentId` pointing at a missing or non-`frame` node fails the batch with `INVALID_PARENT_REF`;
+a `frame` parented to a `frame` fails with `NESTED_GROUP_FORBIDDEN` (422, nothing applied — see
+`references/op-schema.md`).
+
 ## Templates and grouping
 
 - **Templates are metadata-only via the CLI.** `clickraft template get` returns name,
   description, thumbnail, and declared params — **no nodes, no edges, no structure** — and
   there is no "create from template". Do **not** read templates to learn topology; build
   topology directly from `nodes describe` (wire output→input where `dataType`s match).
-- **Grouping (`frame` nodes) is deferred.** You can add a `frame` node like any other, but
-  the current op schema has no parent/containment field on `add_node`, so nesting nodes
-  inside a frame is not expressible via the CLI yet. Skip grouping for now.
+- **Grouping is supported via `parentId`.** Add a `frame` node and parent children to it in
+  the same batch — see "Grouping: put a node inside a frame" above.
 
 ## Reference files
 

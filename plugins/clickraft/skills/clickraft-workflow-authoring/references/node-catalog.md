@@ -78,8 +78,11 @@ Connect an **output** handle to an **input** handle with a matching `dataType`
 `apply`; a bad pairing fails the batch. When unsure of a node's ports or fields,
 `nodes describe <type>` before you build.
 
-## Grouping / `frame` — deferred
+## Grouping: nest a node inside a `frame`
 
-The `frame` node exists and can be added like any node, but the `add_node` op schema has no
-parent/containment field, so nesting other nodes inside a frame is not expressible via the
-CLI today. Don't attempt agent-built grouping until the op schema supports it.
+The `frame` node is a container. To place a node inside one, add the child with `parentId` set
+to the frame's id (the frame can already exist or be added by an earlier op in the same batch),
+give the child its **absolute** canvas position (the server converts it to a frame-relative
+offset), and set `expandParent: false`. Frames cannot be nested. Full contract + validation
+errors: `references/op-schema.md` → "Node containment"; workflow pattern: `SKILL.md` →
+"Grouping: put a node inside a frame".
