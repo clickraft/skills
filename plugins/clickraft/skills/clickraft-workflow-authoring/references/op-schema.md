@@ -150,9 +150,13 @@ Round-trip proof (live): writing
 read back as
 `{source:"txt1", sourceHandle:"text-output", target:"gen1", targetHandle:"prompt-input"}`.
 
-**Never** paste a read edge into an `add_edge` op — the schema strips the unknown
-`source/sourceHandle/...` keys, leaving an edge with empty endpoints. Translate read → write
-first.
+**Never** paste a read edge into an `add_edge` op. `edge.from` and `edge.to` are **required**
+objects (`from:{node,output}`, `to:{node,input}`), so a read-shape edge —
+`source`/`sourceHandle`/`target`/`targetHandle`, with no `from`/`to` — is **hard-rejected** by
+the agents API: HTTP 400 `INPUT_INVALID_FORMAT` (CLI envelope `E_INPUT_INVALID_FORMAT`, exit 2),
+with zod path errors at `operations[i].edge.from` and `operations[i].edge.to`
+("expected object, received undefined"). It is **not** silently accepted, and the endpoints are
+**not** emptied. Translate read → write first.
 
 ## Response shapes (mind the casing difference)
 

@@ -150,7 +150,8 @@ So `from:{node:"txt1",output:"text-output"}, to:{node:"gen1",input:"prompt-input
 back as `{source:"txt1", sourceHandle:"text-output", target:"gen1", targetHandle:"prompt-input"}`.
 If you need to recreate an edge you read from `workflow get`, **translate** it back to the
 `from/to` write shape — pasting `source/sourceHandle/target/targetHandle` into an `add_edge`
-produces an edge with empty endpoints. When copying an edge from a *different* workflow, also
+is **hard-rejected** (HTTP 400 `E_INPUT_INVALID_FORMAT`) because `edge.from`/`edge.to` are
+required; it does **not** silently pass. When copying an edge from a *different* workflow, also
 mint a fresh `edge.id` and remap the node ids to this workflow's ids — the foreign
 `id`/`source`/`target` values don't exist here.
 
