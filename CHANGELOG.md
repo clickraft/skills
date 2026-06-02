@@ -2,6 +2,21 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.3] — 2026-06-02
+
+### Fixed
+- `clickraft-workflow-authoring` skill — corrected the documented failure mode for
+  pasting a read-shape edge (`source`/`sourceHandle`/`target`/`targetHandle`, no
+  `from`/`to`) into an `add_edge` op. It is **hard-rejected** by the agents API with
+  HTTP 400 `INPUT_INVALID_FORMAT` (CLI envelope `E_INPUT_INVALID_FORMAT`, exit 2)
+  because `edge.from`/`edge.to` are required objects — not silently accepted with empty
+  endpoints, as previously framed. Updated `SKILL.md` and `references/op-schema.md`;
+  the `from/to` write-shape guidance is unchanged.
+
+### Changed
+- All manifests and VERSION bumped to `0.4.3`.
+- `compatibility.json` `skills_version` set to `0.4.3`.
+
 ## [0.4.2] — 2026-05-30
 
 ### Added

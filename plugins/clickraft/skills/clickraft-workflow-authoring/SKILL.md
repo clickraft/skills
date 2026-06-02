@@ -1,5 +1,5 @@
 ---
-version: 0.4.2
+version: 0.4.3
 name: clickraft-workflow-authoring
 description: |
   Author a multi-node Clickraft workflow graph from a natural-language request. Creates a
