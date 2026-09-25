@@ -2,6 +2,25 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- `generate-image` skill — `--model-slug` is the AI model (e.g. `nano-banana-2`), not a
+  brand model. The Prerequisites step sent agents to `clickraft brand-model list` for the
+  slug; it now uses `clickraft models list --json` (`data.models[].slug`). Same fix for
+  the `E_MODEL_NOT_FOUND` recovery row and the skill description.
+
+### Added
+- `generate-image` skill — `--output ./clickraft-output/` on create / wait / get saves
+  the finished image locally (`data.savedPath`), and the agent opens it with Read before
+  replying, so it can judge the result instead of only relaying a URL. Includes the
+  fallback for a CLI that predates `--output`.
+
+### Release note
+- Needs the `@clickraft/cli` release that ships `generate --output`. At release time,
+  bump VERSION and the manifests, and raise `compatibility.json` `min_cli_version` to
+  that CLI version.
+
 ## [0.4.3] — 2026-06-02
 
 ### Fixed

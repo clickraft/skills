@@ -2,8 +2,9 @@
 version: 0.4.3
 name: generate-image
 description: |
-  Generate a single image with Clickraft. Invokes `clickraft generate create` against
-  a brand-model slug with a text prompt, returns the GCS-signed result URL.
+  Generate a single image with Clickraft. Invokes `clickraft generate create` with an
+  AI model slug (e.g. nano-banana-2) and a text prompt, saves the result locally so the
+  agent can look at it, and returns the result URL.
 
   Use when: "generate an image", "create an image", "render an image", "make an
   image", "make a picture", "produce a hero image", "generate a product photo",
@@ -16,7 +17,7 @@ description: |
   Chain with: none in Wave 1. Future: chain with `clickraft-product-shoot` for
   multi-image product workflows (v0.2.x+).
 argument-hint: "[prompt] [--model-slug <slug>] [--aspect-ratio <W:H>] [--brand-model <uuid>:<pose>] [--product <uuid>:<imageId>] [--reference-image <url|path>]"
-allowed-tools: Bash(clickraft:*)
+allowed-tools: Bash(clickraft:*), Read
 ---
 
 # Generate an image with the Clickraft CLI
@@ -24,14 +25,19 @@ allowed-tools: Bash(clickraft:*)
 ## Quick start
 
 ```bash
-clickraft generate create --json --model-slug <slug> --prompt "<user's prompt>"
+clickraft generate create --json --model-slug <slug> --prompt "<user's prompt>" \
+  --output ./clickraft-output/
 ```
 
-Read `data.resultUrl` from the JSON envelope and surface it to the user.
+`--output` saves the finished image as `./clickraft-output/<jobId>.<ext>` and reports
+the path in `data.savedPath`. **Open that file (Read) and look at it before you
+reply** — check it matches the request (subject, text, composition). Then surface
+`data.savedPath` and `data.resultUrl` to the user.
 
 ## UX rules
 
-1. Be concise. No raw IDs, no JSON dumps. Print the resultUrl + a one-line summary.
+1. Be concise. No raw IDs, no JSON dumps. Print the saved path, the resultUrl, and a
+   one-line summary of what you see in the image.
 2. Detect language and reply in it. CLI flags stay English.
 3. Don't batch-ask. Pick the default for the user's modality and submit. Ask one thing only if a required field is genuinely missing.
 4. Don't pre-estimate cost or downgrade models silently — see "Cost handling".
@@ -233,13 +239,15 @@ clickraft generate create --json \
 
    If not authenticated, instruct the user to run `clickraft login`.
 
-2. A valid brand-model slug. If the user has not named one, list available models first:
+2. A valid **AI model** slug for `--model-slug` (e.g. `nano-banana-2`). This is the
+   generation engine, NOT a brand model — brand models go in `--brand-model`. The
+   "Model selection" section covers the defaults; to see every available model:
 
    ```bash
-   clickraft brand-model list --json
+   clickraft models list --json --category image
    ```
 
-   Pick a slug from `data.items[].slug`. If unsure which model fits, ask the user or default to the model they previously used.
+   Pick a slug from `data.models[].slug` (`isDefault` marks the default).
 
 ## Invocation pattern
 
@@ -249,7 +257,8 @@ Always pass `--json` so the response is parseable. Default mode waits for comple
 clickraft generate create \
   --json \
   --model-slug <slug> \
-  --prompt "<user's prompt>"
+  --prompt "<user's prompt>" \
+  --output ./clickraft-output/
 ```
 
 **Optional flags** (only pass when the user explicitly requests):
@@ -274,7 +283,8 @@ On success the CLI prints:
     "status": "completed",
     "resultUrl": "https://...",
     "thumbnailUrl": "https://...",
-    "creditsCharged": 25
+    "creditsCharged": 25,
+    "savedPath": "/abs/path/clickraft-output/<jobId>.png"
   },
   "error": null,
   "meta": { "request_id": "...", "command": "generate create", "duration_ms": 8412 }
@@ -291,7 +301,7 @@ If the user wants a job ID without waiting (equivalent: `--async`):
 clickraft generate create --json --no-wait --model-slug <slug> --prompt "..."
 ```
 
-Response has `data.status = "queued"` and `data.resultUrl = null`. Resume later with `clickraft generate wait <jobId> --json` (long-poll) or `clickraft generate get <jobId> --json` (single-shot).
+Response has `data.status = "queued"` and `data.resultUrl = null`. Resume later with `clickraft generate wait <jobId> --json --output ./clickraft-output/` (long-poll) or `clickraft generate get <jobId> --json --output ./clickraft-output/` (single-shot). `--output` only saves a completed job; otherwise the CLI notes `Not saved: …` on stderr and `data.savedPath` is absent.
 
 ## Cost handling
 
@@ -319,7 +329,7 @@ On failure the envelope returns `ok: false` and the exit code is non-zero. Top e
 | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. Do not retry. |
 | `E_INSUFFICIENT_CREDITS` | Tell the user their account is out of credits + link to billing. Do not retry. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (default 1000 if unset) and retry once. |
-| `E_MODEL_NOT_FOUND` | Re-list models with `clickraft brand-model list` and pick a different slug. |
+| `E_MODEL_NOT_FOUND` | Re-list models with `clickraft models list --json` and pick a different slug. |
 | `E_GEN_CONTENT_REFUSAL` | The model refused the prompt for safety. Ask the user to rephrase. |
 
 Full envelope + exit-code + error-code reference: [docs/ENVELOPE.md on GitHub](https://github.com/clickraft/skills/blob/main/docs/ENVELOPE.md).
@@ -327,3 +337,8 @@ Full envelope + exit-code + error-code reference: [docs/ENVELOPE.md on GitHub](h
 ## Compatibility
 
 Requires `@clickraft/cli` `>= 0.6.0`. The CLI's `compatibility.json` declares the minimum skills version it supports; this skill's behaviour is locked against CLI `0.6.0` envelope semantics.
+
+`--output` needs a CLI release that includes it. An older CLI rejects it with
+`Unknown flag --output` (`E_INPUT_INVALID_FORMAT`, exit 2): rerun the same command
+without `--output`, then fetch `data.resultUrl` with `curl -sSfo <path> <url>` and open
+that file instead.
