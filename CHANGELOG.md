@@ -2,7 +2,7 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.0] — 2026-09-25
 
 ### Fixed
 - `generate-image` skill — `--model-slug` is the AI model (e.g. `nano-banana-2`), not a
@@ -19,10 +19,11 @@ All notable changes to Clickraft Skills are documented here. Format based on [Ke
   `clickraft generate estimate` (same flags as create, charges nothing) instead
   of the "coming soon" placeholder.
 
-### Release note
-- Needs the `@clickraft/cli` release that ships `generate --output` and `generate estimate`. At release time,
-  bump VERSION and the manifests, and raise `compatibility.json` `min_cli_version` to
-  that CLI version.
+### Changed
+- All manifests and VERSION bumped to `0.5.0`.
+- `compatibility.json` `skills_version` set to `0.5.0`; `min_cli_version` raised from
+  `0.6.0` to `0.15.0`, the `@clickraft/cli` release that ships `generate --output` and
+  `generate estimate`. Minor bump because an older CLI no longer meets the minimum.
 
 ## [0.4.3] — 2026-06-02
 
