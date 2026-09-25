@@ -309,12 +309,14 @@ Default: submit without pre-estimating. Quality first.
 
 Surface cost ONLY when:
 
-1. **User asks.** TODO — once `clickraft generate cost` ships, run
-   `clickraft generate cost --model-slug <slug> --prompt "..." --json` and
-   quote the estimated credits. Until then, tell the user cost-estimation is
-   coming soon and proceed with the request.
-2. **High-cost configuration.** Resolution ≥ 4k or any high-quality flag → say
-   "this will use ~N credits" before submitting. Don't ask — just inform.
+1. **User asks.** Run `clickraft generate estimate` with the SAME flags you
+   would pass to `generate create` (plus `--json`) and quote `data.creditCost`;
+   `data.affordable` / `data.blockedReason` say whether the account can run it
+   now. It charges nothing. (Needs the CLI release that ships `generate
+   estimate`; an older CLI answers "Unknown command".)
+2. **High-cost configuration.** Resolution ≥ 4k or any high-quality flag → run
+   `generate estimate` first and say "this will use N credits" before
+   submitting. Don't ask — just inform.
 3. **Insufficient balance.** On `E_INSUFFICIENT_CREDITS`, tell the user the
    exact gap and link to billing.
 

@@ -15,9 +15,12 @@ All notable changes to Clickraft Skills are documented here. Format based on [Ke
   the finished image locally (`data.savedPath`), and the agent opens it with Read before
   replying, so it can judge the result instead of only relaying a URL. Includes the
   fallback for a CLI that predates `--output`.
+- `generate-image` skill — cost questions and high-cost requests now use
+  `clickraft generate estimate` (same flags as create, charges nothing) instead
+  of the "coming soon" placeholder.
 
 ### Release note
-- Needs the `@clickraft/cli` release that ships `generate --output`. At release time,
+- Needs the `@clickraft/cli` release that ships `generate --output` and `generate estimate`. At release time,
   bump VERSION and the manifests, and raise `compatibility.json` `min_cli_version` to
   that CLI version.
 
