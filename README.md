@@ -15,6 +15,7 @@ See [INSTALL.md](./INSTALL.md) for the four install paths (npx, Claude Code mark
 | Skill | Invoke | Description |
 |---|---|---|
 | [`generate-image`](./plugins/clickraft/skills/generate-image/SKILL.md) | "Generate an image of …" | Call `clickraft generate create` with a model slug and prompt. Handles sync vs async, references, and error envelopes. |
+| [`production-recipe`](./plugins/clickraft/skills/production-recipe/SKILL.md) | "Build me a Recipe in this style …" | Write a reusable catalog-shoot style with `clickraft recipe`, create a draft, have Clickraft plan the photos, and hand over the link where the images are approved and the Recipe saved. |
 
 More skills land as we learn what agents need most.
 
@@ -25,6 +26,7 @@ More skills land as we learn what agents need most.
 | Generate a single image | `generate-image` | default model |
 | Generate with brand context | `generate-image` | pass `--model-slug <slug>` from `clickraft brand-model list` |
 | Reference an existing image | `generate-image` | pass `--reference-image-url <url>` |
+| Reusable catalog shoot style (Recipe) | `production-recipe` | ends with a Clickraft link; approving and saving happen there |
 | Multi-image product shoot | (coming v0.2.x — `clickraft-product-shoot`) | planned |
 | Generate video | (coming v0.3.x) | planned |
 
