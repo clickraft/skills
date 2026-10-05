@@ -2,6 +2,14 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- `generate-image` skill — the discovery steps named fields the CLI does not return.
+  `clickraft brand-model list --json` returns the list itself in `data` (read
+  `data[].id`, `data[].name`), and `clickraft product list --json` returns
+  `data.products[]` with a `title` (not `data.items[].name`).
+
 ## [0.5.0] — 2026-09-25
 
 ### Fixed

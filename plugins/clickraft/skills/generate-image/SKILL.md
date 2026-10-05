@@ -130,7 +130,7 @@ Discovery -- resolve a named brand model to its UUID:
 clickraft brand-model list --json
 ```
 
-Read `data.items[].id` and `data.items[].name`.
+Read `data[].id` and `data[].name` (`data` is the list itself).
 
 When to ask: the user says "my model", "use my face", or names a brand model by
 name but not UUID. List brand models and ask which one.
@@ -163,7 +163,7 @@ Discovery -- search the product catalog:
 clickraft product list --json --search "red sneaker"
 ```
 
-Read `data.items[].id` and `data.items[].name`.
+Read `data.products[].id` and `data.products[].title`.
 
 When to ask: the user references a product by name ("the red sneaker",
 "my latest shoe") but hasn't provided a UUID. Search the catalog and confirm.
