@@ -2,7 +2,7 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.5.1] — 2026-10-05
 
 ### Added
 - `production-recipe` skill — builds a production Recipe (a reusable catalog-shoot
@@ -19,6 +19,13 @@ All notable changes to Clickraft Skills are documented here. Format based on [Ke
   `clickraft brand-model list --json` returns the list itself in `data` (read
   `data[].id`, `data[].name`), and `clickraft product list --json` returns
   `data.products[]` with a `title` (not `data.items[].name`).
+
+### Changed
+- All manifests and VERSION bumped to `0.5.1`.
+- `compatibility.json` `skills_version` set to `0.5.1`. `min_cli_version` is unchanged:
+  `generate-image` and `clickraft-workflow-authoring` still run on `0.15.0`. The new
+  skill needs the CLI release that ships `recipe` and says how to tell when the CLI is
+  older.
 
 ## [0.5.0] — 2026-09-25
 
