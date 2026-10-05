@@ -4,6 +4,16 @@ All notable changes to Clickraft Skills are documented here. Format based on [Ke
 
 ## [Unreleased]
 
+### Added
+- `production-recipe` skill — builds a production Recipe (a reusable catalog-shoot
+  style) with the `clickraft recipe` commands: reads `recipe schema` for the JSON
+  Schema, rules and the organization's facets, products and models; writes the Recipe;
+  creates the draft; plans the photos (Utility Units, not credits); and ends with the
+  draft's link, where the user approves the images and saves the Recipe. Covers
+  bindings, editing at the current revision, conflicts, idempotency keys for safe
+  retries, and the error codes. `references/recipe-format.md` holds the field guide and
+  two complete request files, both checked against the server's own validation.
+
 ### Fixed
 - `generate-image` skill — the discovery steps named fields the CLI does not return.
   `clickraft brand-model list --json` returns the list itself in `data` (read
