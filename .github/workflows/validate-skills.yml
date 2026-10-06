@@ -4,6 +4,9 @@ on:
   pull_request:
     branches: [main]
     paths:
+      - "src/**"
+      - "scripts/**"
+      - "mcp/**"
       - "plugins/**"
       - ".claude-plugin/**"
       - ".cursor-plugin/**"
@@ -14,6 +17,9 @@ on:
   push:
     branches: [main]
     paths:
+      - "src/**"
+      - "scripts/**"
+      - "mcp/**"
       - "plugins/**"
       - ".claude-plugin/**"
       - ".cursor-plugin/**"
@@ -36,6 +42,14 @@ jobs:
 
       - name: Install PyYAML
         run: pip install pyyaml --quiet
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Check 0 — generated skills match src/skills
+        run: node scripts/build-skills.mjs --check
 
       - name: Check 1 — frontmatter validation
         run: |

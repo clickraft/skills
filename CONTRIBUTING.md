@@ -39,7 +39,7 @@ Before requesting review, confirm every item below. CI enforces items 1–5 auto
 ## Adding a new skill
 
 1. Pick a kebab-case slug (e.g. `product-shoot`, `video-clip`). The directory name and the `name:` frontmatter field MUST match.
-2. Create `plugins/clickraft/skills/<skill-name>/SKILL.md`. Use the skeleton below.
+2. Create `src/skills/<skill-name>/SKILL.md` (the source; `plugins/` and `mcp/` are generated). Use the skeleton below. Wrap CLI-only or MCP-only text in `<cli>…</cli>` / `<mcp>…</mcp>`, add `surfaces: [cli, mcp]` to ship it to MCP, then run `node scripts/build-skills.mjs`.
 3. Bump `VERSION` (patch for additions, minor for breaking changes). Sync every location listed in PR-checklist item 2.
 4. Add a `## [<version>] — YYYY-MM-DD` entry to `CHANGELOG.md`.
 5. Tag the release after merge: `git tag -a v<version> -m "..."` and `git push origin v<version>`. Then `gh release create v<version>`.
