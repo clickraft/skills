@@ -5,14 +5,14 @@ description: |
   Build a production Recipe with the Clickraft CLI: a reusable catalog-shoot style
   (product and model slots, the photos to take, styling, scene) that Clickraft applies to
   many products. Reads the schema and the catalog, writes the Recipe as JSON, creates a
-  draft, has Clickraft plan the photos, makes the sample images with the user's consent
-  (photo 1 first), and hands the user the link where they approve the images and save it.
+  draft, has Clickraft plan the photos, makes the sample images on the user's word, and
+  hands the user the link where they approve the images and save it.
 
   Use when: "build me a Recipe", "create a Recipe in this style", "a shoot style for my
   catalog", "product-page photos for every product", "front, back and detail shots",
   "PDP style", "make a Recipe like my summer one", "change my Recipe draft", "plan the
-  photos", "make the sample images", "redo the second photo". Use it whenever the user
-  wants one repeatable look for many products, even if they never say "Recipe".
+  photos", "make the sample images". Use it whenever the user wants one repeatable look
+  for many products, even if they never say "Recipe".
 
   NOT for: a single one-off image (use `generate-image`), a workflow graph (use
   `clickraft-workflow-authoring`), or running a production with a saved Recipe — that
