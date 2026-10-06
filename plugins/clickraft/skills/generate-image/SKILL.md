@@ -1,5 +1,5 @@
 ---
-version: 0.6.0
+version: 0.7.0
 name: generate-image
 description: |
   Generate a single image with Clickraft. Invokes `clickraft generate create` with an
@@ -10,12 +10,13 @@ description: |
   image", "make a picture", "produce a hero image", "generate a product photo",
   "render with my brand model", "image from this prompt", "make me a graphic".
 
-  NOT for: editing an existing image (separate edit skill, coming later), batch
-  generation in one call (separate batch skill), generating video (separate video
-  skill), uploading user-provided images (separate `upload` skill).
+  NOT for: a finished product photoshoot or set (use `product-photoshoot`), a named
+  product look like "hero shot" or "flatlay" (use `product-image-presets`), video
+  (use `product-video-presets`, `ugc-video` or `ad-multiplier`), thumbnails (use
+  `thumbnail-generation`), character sheets (use `character-sheet`).
 
-  Chain with: none in Wave 1. Future: chain with `clickraft-product-shoot` for
-  multi-image product workflows (v0.2.x+).
+  Chain with: any skill above. A finished `data.resultUrl` is a valid
+  `--reference-image` or `--start-frame` for the next call.
 argument-hint: "[prompt] [--model-slug <slug>] [--aspect-ratio <W:H>] [--brand-model <uuid>:<pose>] [--product <uuid>:<imageId>] [--reference-image <url|path>]"
 allowed-tools: Bash(clickraft:*), Read
 ---
@@ -64,23 +65,26 @@ Never ask about aspect ratio, resolution, or duration — default and submit. Th
 Static catalog. Pick by intent. Pass the chosen slug as `--model-slug` to
 `clickraft generate create`.
 
-- **`nano-banana-2`** — default. Use for general image generation, character,
-  stylized, photorealistic scenes, reference-driven work.
-- **`nano-banana-pro`** — escalation only. Use when `nano-banana-2` was
-  tried and the output didn't land, OR when the user explicitly asks for
-  "high quality", "best quality", "professional", "Pro", or "better". Do
-  NOT pick Pro proactively from intent keywords like "product", "hero",
-  "studio", or "commercial" — those go to `nano-banana-2` first. Pro is
-  3-5× more expensive; default-first iteration is the right pattern.
-- **`gpt-image-2`** — use when the image must contain rendered text:
-  typography, on-image text, headlines, labels, posters, logos with text,
-  story/ad with copy. Trigger phrases (any language): "with text", "with
-  the words", "with caption", "with title", "with headline", "label that
-  reads", explicit quoted strings the user wants rendered.
+- **`gpt-image-2.5-sunburst`** with `--quality high`: the default. Use it for ordinary
+  generation, photoreal scenes, and edits or compositions from reference images (up
+  to 8 `--reference-image`). It keeps the subject of a reference faithful and renders
+  text well.
+- **`nano-banana-2`**: for a trained identity (`--brand-model`) or a character kept
+  consistent across images. It takes up to 10 asset and 4 character references, and
+  it is the only one with extreme ratios (1:4, 1:8, 4:1, 8:1).
+- **`nano-banana-pro`** at `--resolution 2K`: for finished commercial product images
+  where label and material fidelity matter, or when the user asks for "best",
+  "professional" or "Pro". It costs about 3× the default, so don't pick it for a draft.
+  For a full product set, use the `product-photoshoot` skill, which locks this model.
+- **`gpt-image-2`**: when the image must carry exact text (headlines, posters, labels,
+  quoted strings) and there is no reference image. When a reference must be kept
+  faithful, use `gpt-image-2.5-sunburst` instead.
+- **`gpt-image-2.5-flare`**: fast drafts and quick iteration.
 
-When two could apply, prefer `gpt-image-2` if text rendering is required;
-otherwise prefer `nano-banana-2` for speed and cost. Pro is reserved for
-explicit user request or retry after a failed `nano-banana-2` attempt.
+When two could apply: exact text with no reference → `gpt-image-2`; identity →
+`nano-banana-2`; otherwise → `gpt-image-2.5-sunburst`. Constraints change, so before
+setting a ratio, resolution or quality, check `clickraft models list --json` →
+`data.models[].constraints.capabilities`.
 
 When the user names a model explicitly, use that slug — skip the decisions
 above. Pass any slug the user names directly to the CLI; the CLI validates
@@ -123,6 +127,12 @@ to 3 per call.
 
 Poses: `front`, `3/4-right`, `right`, `left`, `3/4-left`, `back`, `approved`.
 When omitted, the server picks the best available pose.
+
+Poses work only on the user's own trained brand models. Shared system models (`source:
+"system"` in `brand-model list`) reject any pose with `E_BRAND_MODEL_POSE_NOT_FOUND`, so
+pass a bare uuid for them. On that error, drop the pose and resubmit. Each brand model can
+appear only once per call ("Duplicate brand model ID"). In zsh, write
+`"${UUID}:front"`, because `$UUID:front` is read as a modifier.
 
 Discovery -- resolve a named brand model to its UUID:
 
