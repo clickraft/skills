@@ -16,6 +16,15 @@ sentences.
 
 ## Still life — clean and graphic
 
+### `clean-ecommerce`
+- Light: soft, broad, wrapping high-key light from above-front; even exposure, true
+  colors, no hard shadow edges.
+- Palette: pure white to pale grey, the product's own colors rendered true.
+- Composition: calm and still, product centered or slightly offset, nothing tilted or
+  staged, even margins all round.
+- Surface: seamless white-to-pale-grey sweep, faint soft contact shadow, clean true
+  reflections on glass and gloss.
+
 ### `graphic-color-block`
 - Light: flat, even, shadow-controlled studio light; crisp but soft-edged contact shadows.
 - Palette: two or three solid, confident colors, cleanly separated.
@@ -50,8 +59,8 @@ sentences.
 - Surface: aged wood, stone, plain plaster backdrops.
 
 ### `sculpted-dramatic-light`
-- Light: carved, high-contrast lighting with gridded spots and strong rim; light treated
-  as a sculpting tool.
+- Light: carved, high-contrast lighting with tight pools of light and a strong rim; light
+  treated as a sculpting tool.
 - Palette: deep blacks against luminous highlights, one jewel-tone accent.
 - Composition: bold, isolating the product against darkness.
 - Surface: glossy black, polished stone, liquid reflections.
@@ -121,7 +130,8 @@ sentences.
 ## Beauty
 
 ### `glossy-beauty`
-- Light: beauty dish or ring key, sculpted cheekbones, specular highlights on lips and glass.
+- Light: crisp, sculpted frontal beauty light, defined cheekbones, specular highlights on
+  lips and glass.
 - Palette: rich, glossy, high-impact color.
 - Composition: tight crops, flawless styling that still keeps real skin texture.
 - Surface: lacquered, wet-look, mirror-polished.
@@ -183,7 +193,7 @@ sentences.
 - Surface: outdoor locations, denim, cotton, sand.
 
 ### `street-candid`
-- Light: available daylight, sometimes reflector fill.
+- Light: available daylight, shadows gently lifted.
 - Palette: real city colors.
 - Composition: caught-in-motion, slightly long lens, background bustle blurred.
 - Surface: pavement, brick, glass storefronts.
@@ -271,7 +281,8 @@ sentences.
 
 **Good families** (pick 2–3 from one family):
 
-- Clean product: `graphic-color-block` + `surreal-levitation` + `playful-pop-still-life`
+- Clean e-commerce: `clean-ecommerce` + `graphic-color-block`
+- Playful product: `graphic-color-block` + `surreal-levitation` + `playful-pop-still-life`
 - Glossy beauty: `skin-sculpting-light` + `glossy-beauty` + `modern-minimal-beauty`
 - Warm food and lifestyle: `warm-editorial-table` + `sunlit-airy-lifestyle` + `bright-modern-food`
 - High editorial fashion: `whimsical-fantasy` + `glossy-high-fashion` + `dramatic-editorial`

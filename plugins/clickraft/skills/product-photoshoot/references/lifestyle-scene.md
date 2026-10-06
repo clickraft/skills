@@ -42,7 +42,8 @@ than "product on a table".
 
 [PRODUCT PLACEMENT]
 {{exact product}} sits {{where}}, {{relation to nearby objects}}, clearly the most
-prominent object.
+prominent object. {{for a set: exact piece count and arrangement, e.g. "exactly four
+identical cups beside it"}}.
 
 [HUMAN ELEMENT]
 {{hands / a person partly in frame / a group implied / no people, only traces of use}}.

@@ -10,8 +10,13 @@ mid-run, and never swap it for a text description.
    likeness. Use it unchanged as the creator reference (local path or URL).
 2. **Brand model** — a trained identity in the account. Resolve it with
    `clickraft brand-model list --json` (`data[].id`, `data[].name`). Render one portrait
-   in the same selfie style as below with `--brand-model <uuid>:front` on
-   `nano-banana-pro`, and use that portrait's `data.resultUrl` as the creator reference.
+   in the same selfie style as below with the bare `--brand-model <uuid>` on
+   `nano-banana-pro` (the server uses the model's primary image), and use that
+   portrait's `data.resultUrl` as the creator reference. Add a pose (`<uuid>:<pose>`)
+   only if the user asks for an angle, and check it first with the free
+   `generate estimate`: a pose works only if that model has an image of that angle
+   stored (shared system models reject every pose), and a missing one returns
+   `E_BRAND_MODEL_POSE_NOT_FOUND` — then drop the pose.
 3. **Generated creator** — one portrait from the prompt rules below:
 
 ```bash

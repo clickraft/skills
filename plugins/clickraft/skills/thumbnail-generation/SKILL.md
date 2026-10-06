@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: thumbnail-generation
 description: |
   Produce click-worthy YouTube and Instagram thumbnails and video covers with Clickraft:
@@ -64,7 +64,10 @@ many variants. Defaults are in [references/prompt-blocks.md](references/prompt-b
    I'll lock the identity. Or should it be a generated person, or no people at all?"
    - Face photo: `--reference-image <path|url>` plus an identity lock per person.
    - Trained identity: `clickraft brand-model list --json`, match by name (one match or a
-     single model: use it), pass `--brand-model <uuid>`.
+     single model: use it), pass `--brand-model <uuid>`. On a name shared by several
+     models, prefer the user's own (`source: "user"`) over shared system ones; if several
+     of the user's own still match, show each one's `thumbnailUrl` (or, when that is null,
+     its id suffix) and ask which.
    - Generated person: only on that explicit answer; describe them in prose in block 4.
    - No people: pick a people-free framework (landscape, product, graphic, map).
    Never invent a person silently, and never swap a supplied face for a stranger. For a
@@ -150,7 +153,11 @@ clickraft generate create --json --no-wait --model-slug nano-banana-pro --resolu
 - Reference order: faces in CHARACTER order, then the logo (flat file, or the 3D logo's
   `resultUrl`). With 2 or more images the prompt opens with the manifest line.
 - Trained identity instead of a photo: `--brand-model <uuid>` (up to 3); the prompt names
-  "the trained identity".
+  "the trained identity". Pass the bare uuid by default (the server uses the model's main
+  image). Add a pose (`<uuid>:<pose>`, one of front, 3/4-right, right, left, 3/4-left,
+  back, face-closeup, hands, approved) only when the user asks for an angle, and check it
+  first with the free `generate estimate`: `E_BRAND_MODEL_POSE_NOT_FOUND` means that
+  model has no such image (shared system models have none), so drop the pose.
 - A catalog product as the hero: `--product <uuid>` (find it with
   `clickraft product list --json --search "<name>"`).
 - Local paths are uploaded by the CLI and the same file is reused, so passing the same
@@ -162,8 +169,11 @@ Then, for each job id in the ledger:
 clickraft generate wait <jobId> --json --timeout 100 --output ./clickraft-output/
 ```
 
-If the wait ends before the job finishes, run the same `wait` again. Never resubmit a job
-that timed out; that charges a second time.
+If the wait ends before the job finishes (`E_TIMEOUT`, exit code 6), run the same `wait`
+again. Jobs can sit queued for minutes and an account's jobs may run one after another, so
+2 to 3 waits per 4K render are normal; budget about 2 minutes per image. Never resubmit a
+job that timed out; that charges a second time. Don't chain anything after `wait` with
+`&&`: its non-zero exit stops the chain.
 
 ## Post-render check
 
@@ -194,8 +204,11 @@ clickraft generate create --json --no-wait --model-slug gpt-image-2.5-sunburst \
 - On a submit error or a missing model, retry once on `flux-kontext-pro` with the same
   prompt and reference (no `--quality`). It has no 4:5: use 3:4 and say so.
 - Tweaks come back at about 2K (2048 x 1152 for 16:9), not 4K. Mention it once.
+- A color-only ask ("make it blue") is a background recolor; a new place or new content
+  ("a desert") is a background swap.
 - Each accepted tweak's `resultUrl` is the source of the next one.
-- Run the post-render check on every tweak.
+- Run the post-render check on every tweak. On an image that carries text, that includes
+  the character-for-character text check again: a tweak can repaint the letters.
 
 ## Text
 
@@ -217,7 +230,9 @@ job, job ids or prompt blocks unless asked.
 Every main render is 4K, so always estimate before submitting and state the total; don't
 ask, inform. Run `clickraft generate estimate` with the same flags as one variant (plus
 `--json`), read `data.creditCost`, multiply by the variant count, and say for example
-"4 thumbnails, about 1,920 credits". At the time of writing a 4K `nano-banana-pro` image is
+"4 thumbnails, about 1,920 credits". Also give the worst case with the up to 2 re-renders
+per variant the post-render check allows: one 4K variant can reach 3 x 480 = 1,440
+credits, so 4 variants up to 5,760. At the time of writing a 4K `nano-banana-pro` image is
 480 credits and a `gpt-image-2.5-sunburst` tweak at high quality is under 110. If
 `data.affordable` is false, report `data.blockedReason` and stop. Never drop to 2K or a
 cheaper model to save credits without the user's say.
@@ -228,6 +243,7 @@ cheaper model to save credits without the user's say.
 |---|---|
 | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. Do not retry. |
 | `E_INSUFFICIENT_CREDITS` | Say how many credits the set needs and that the account is short; link to billing. Do not retry. Already-submitted variants keep running; wait for them. |
+| `E_TIMEOUT` (exit 6) | Not a failure: the job keeps running. Run `generate wait <same jobId>` again; never re-create the job. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (1000 if unset) and retry that one submit once. |
 | `E_MODEL_NOT_FOUND` | Main render: list models and report; do not switch tiers silently. Tweak: use the `flux-kontext-pro` fallback. |
 | `E_GEN_CONTENT_REFUSAL` | Usually a real person's likeness, violence or a brand. Soften that element and ask before resubmitting. |

@@ -3,16 +3,18 @@
 The layout decides the opening clause (slot 1), the aspect ratio, and extra exclusions.
 Default: `split-screen`.
 
-| Layout | Aspect ratio | Brand-model pose (user-trained models only) |
-|---|---|---|
-| `split-screen` (default) | 16:9 (or 3:2) | `front` |
-| `turnaround` | 16:9 | `front` (the side and back views come from the clause) |
-| `expression` | 16:9 | `front` |
-| `wardrobe` | 16:9 (21:9 on `nano-banana-pro` for 4+ outfits) | `front` |
-| `triple` | 16:9 (or 3:2) | `front` |
-| single portrait (one view only) | 2:3 or 3:4 | `front` or `3/4-right` |
+| Layout | Aspect ratio |
+|---|---|
+| `split-screen` (default) | 16:9 (or 3:2) |
+| `turnaround` | 16:9 (the side and back views come from the clause) |
+| `expression` | 16:9 |
+| `wardrobe` | 16:9 (21:9 on `nano-banana-pro` for 4+ outfits) |
+| `triple` | 16:9 (or 3:2) |
+| single portrait (one view only) | 2:3 or 3:4 |
 
-System brand models (`source: "system"`) take no pose — pass the bare uuid.
+Brand models: pass the bare uuid for every layout — the views come from the layout
+clause, not from a pose suffix. Use a pose only when the user asks for one (see the
+skill's "Identity input" section).
 
 Check the chosen model's allowed ratios with `clickraft models list --category image
 --json` before using anything outside 16:9 / 3:2 / 2:3 / 3:4.
@@ -87,6 +89,12 @@ crop not a full body.
 
 **Situational:** no bag, no branding, no harsh shadows, no distorted anatomy, no extra
 fingers.
+
+**Brand context:** when the sheet is for the user's brand ("for my coffee brand"), brand
+colours and wardrobe cues (an apron or uniform in the brand palette, category-typical
+details) are welcome in the wardrobe slot — then skip "no branding". Logos and wordmarks
+still stay out (keep "no text, no logos"); image models garble them, so they are added
+later, in a follow-up edit or in layout.
 
 **Originality (always, unless identity is locked to the user's own brand model or
 photo):** an original character that does not resemble any real celebrity or existing

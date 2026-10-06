@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: generate-image
 description: |
   Generate a single image with Clickraft. Invokes `clickraft generate create` with an
@@ -17,7 +17,7 @@ description: |
 
   Chain with: any skill above. A finished `data.resultUrl` is a valid
   `--reference-image` or `--start-frame` for the next call.
-argument-hint: "[prompt] [--model-slug <slug>] [--aspect-ratio <W:H>] [--brand-model <uuid>:<pose>] [--product <uuid>:<imageId>] [--reference-image <url|path>]"
+argument-hint: "[prompt] [--model-slug <slug>] [--aspect-ratio <W:H>] [--brand-model <uuid>] [--product <uuid>:<imageId>] [--reference-image <url|path>]"
 allowed-tools: Bash(clickraft:*), Read
 ---
 
@@ -26,9 +26,15 @@ allowed-tools: Bash(clickraft:*), Read
 ## Quick start
 
 ```bash
-clickraft generate create --json --model-slug <slug> --prompt "<user's prompt>" \
-  --output ./clickraft-output/
+clickraft generate create --json --no-wait --model-slug nano-banana-2 \
+  --aspect-ratio 1:1 --prompt "<user's prompt in English>"
+clickraft generate wait <jobId> --json --timeout 100 --output ./clickraft-output/
 ```
+
+Submit with `--no-wait`, then wait on the returned `data.jobId`. Agent shells are killed
+after about 2 minutes, and a job can sit in the queue for several minutes before it starts.
+If `generate wait` comes back with `E_TIMEOUT` (exit code 6), the job is still running: run
+the same `generate wait <jobId>` again. Never create the job a second time.
 
 `--output` saves the finished image as `./clickraft-output/<jobId>.<ext>` and reports
 the path in `data.savedPath`. **Open that file (Read) and look at it before you
@@ -39,14 +45,13 @@ reply** — check it matches the request (subject, text, composition). Then surf
 
 1. Be concise. No raw IDs, no JSON dumps. Print the saved path, the resultUrl, and a
    one-line summary of what you see in the image.
-2. Detect language and reply in it. CLI flags stay English.
+2. Detect the user's language and reply in it. The prompt sent to the CLI via
+   `--prompt "..."` stays English whatever the user's language: translate the intent
+   (style, composition, scene, mood, lighting) to English before submitting. Text that
+   must appear in the image stays verbatim. CLI flags stay English.
 3. Don't batch-ask. Pick the default for the user's modality and submit. Ask one thing only if a required field is genuinely missing.
 4. Don't pre-estimate cost or downgrade models silently — see "Cost handling".
-5. Polling is silent. Use the default sync mode (no `--no-wait`). No status narration.
-6. Detect the user's language and respond in it. The prompt sent to the
-   CLI via `--prompt "..."` stays English regardless of the user's language —
-   translate intent (style, composition, scene, mood, lighting) to English
-   before submitting. CLI flags stay English.
+5. Polling is silent: `--no-wait`, then `generate wait`, with no status narration.
 
 ## When to ask
 
@@ -65,13 +70,16 @@ Never ask about aspect ratio, resolution, or duration — default and submit. Th
 Static catalog. Pick by intent. Pass the chosen slug as `--model-slug` to
 `clickraft generate create`.
 
-- **`gpt-image-2.5-sunburst`** with `--quality high`: the default. Use it for ordinary
-  generation, photoreal scenes, and edits or compositions from reference images (up
-  to 8 `--reference-image`). It keeps the subject of a reference faithful and renders
-  text well.
-- **`nano-banana-2`**: for a trained identity (`--brand-model`) or a character kept
-  consistent across images. It takes up to 10 asset and 4 character references, and
-  it is the only one with extreme ratios (1:4, 1:8, 4:1, 8:1).
+- **`nano-banana-2`**: the default (`isDefault` in `models list`). Use it for ordinary
+  generation, photoreal scenes, a trained identity (`--brand-model`) and characters kept
+  consistent across images. It takes up to 10 asset and 4 character references, and it
+  is the only one with extreme ratios (1:4, 1:8, 4:1, 8:1). Default resolution is 1K
+  (134 credits); pass `--resolution 2K` only when the user wants a larger file.
+- **`gpt-image-2.5-sunburst`** with `--quality high`: for precise edits of a supplied
+  image, and compositions where a reference must be kept faithful (up to 8
+  `--reference-image`). It is cheaper (about 106 credits), but in a side-by-side test its
+  photoreal scenes looked flatter than `nano-banana-2`. It takes no `--resolution`: the
+  size comes from the ratio (16:9 → 2048×1152).
 - **`nano-banana-pro`** at `--resolution 2K`: for finished commercial product images
   where label and material fidelity matter, or when the user asks for "best",
   "professional" or "Pro". It costs about 3× the default, so don't pick it for a draft.
@@ -81,8 +89,9 @@ Static catalog. Pick by intent. Pass the chosen slug as `--model-slug` to
   faithful, use `gpt-image-2.5-sunburst` instead.
 - **`gpt-image-2.5-flare`**: fast drafts and quick iteration.
 
-When two could apply: exact text with no reference → `gpt-image-2`; identity →
-`nano-banana-2`; otherwise → `gpt-image-2.5-sunburst`. Constraints change, so before
+When two could apply: exact text with no reference → `gpt-image-2`; editing a supplied
+image or keeping a reference faithful → `gpt-image-2.5-sunburst`; otherwise →
+`nano-banana-2`. Constraints change, so before
 setting a ratio, resolution or quality, check `clickraft models list --json` →
 `data.models[].constraints.capabilities`.
 
@@ -108,8 +117,8 @@ listed keywords.
 Override rules:
 - If the user names an aspect ratio or dimensions explicitly (e.g. "1024x1536",
   "9:16", "vertical 2:3"), use that. Skip the table.
-- If the intent doesn't match any listed keyword, ask ONE labeled-options
-  question: `[1:1 (square) / 9:16 (vertical) / 16:9 (wide)]`.
+- If the intent doesn't match any listed keyword, use `1:1` without asking. The user
+  re-runs with another ratio if they want one.
 
 Pass the chosen aspect ratio as `--aspect-ratio <W:H>` to `clickraft generate
 create`.
@@ -125,14 +134,19 @@ multiple outputs.
 Flag: `--brand-model <uuid>` or `--brand-model <uuid>:<pose>`. Repeatable, up
 to 3 per call.
 
-Poses: `front`, `3/4-right`, `right`, `left`, `3/4-left`, `back`, `approved`.
-When omitted, the server picks the best available pose.
+**Pass the bare uuid by default.** The server then uses the model's primary image.
 
-Poses work only on the user's own trained brand models. Shared system models (`source:
-"system"` in `brand-model list`) reject any pose with `E_BRAND_MODEL_POSE_NOT_FOUND`, so
-pass a bare uuid for them. On that error, drop the pose and resubmit. Each brand model can
-appear only once per call ("Duplicate brand model ID"). In zsh, write
-`"${UUID}:front"`, because `$UUID:front` is read as a modifier.
+Pose names are `front`, `3/4-right`, `right`, `left`, `3/4-left`, `back`,
+`face-closeup`, `hands` and `approved`. A pose works only if that particular brand model
+has an image of that angle stored, and many have none. Shared system models
+(`source: "system"`) reject every pose. No command lists a model's poses. So:
+
+- Add a pose only when the user asks for an angle.
+- Check it first with the free `clickraft generate estimate` and the same flags.
+- If you get `E_BRAND_MODEL_POSE_NOT_FOUND`, drop the pose and use the bare uuid.
+
+Each brand model can appear only once per call ("Duplicate brand model ID"). In zsh,
+write `"${UUID}:back"`, because `$UUID:back` is read as a modifier.
 
 Discovery -- resolve a named brand model to its UUID:
 
@@ -143,7 +157,9 @@ clickraft brand-model list --json
 Read `data[].id` and `data[].name` (`data` is the list itself).
 
 When to ask: the user says "my model", "use my face", or names a brand model by
-name but not UUID. List brand models and ask which one.
+name but not UUID. List brand models and ask which one. The user's own models
+(`source: "user"`) come before shared system ones. Names can repeat, so on a clash show
+each candidate's `thumbnailUrl` (it can be null) rather than the name alone.
 
 When to act: the user provides a UUID directly, or only one brand model exists
 in the account (use it without asking).
@@ -152,9 +168,9 @@ When to skip: generic prompts with no identity reference ("a cat on a roof")
 don't need a brand model.
 
 ```bash
-clickraft generate create --json \
+clickraft generate create --json --no-wait \
   --model-slug nano-banana-2 \
-  --brand-model 8f3a1b2c-...:front \
+  --brand-model 8f3a1b2c-... \
   --prompt "portrait in a coffee shop, warm lighting"
 ```
 
@@ -176,7 +192,12 @@ clickraft product list --json --search "red sneaker"
 Read `data.products[].id` and `data.products[].title`.
 
 When to ask: the user references a product by name ("the red sneaker",
-"my latest shoe") but hasn't provided a UUID. Search the catalog and confirm.
+"my latest shoe") but hasn't provided a UUID. Search the catalog and confirm. Catalogs
+often hold two products with the same title, and then the title can't tell them apart:
+show each candidate's primary image, or pick the one whose image matches what the user
+showed.
+
+Each `--product` contributes one image: the given `imageId`, otherwise the primary image.
 
 When to act: the user provides a UUID directly, or the search returns exactly
 one match.
@@ -199,8 +220,14 @@ references, composition guides, or user-uploaded photos.
 Flag: `--reference-image <url|path>`. Repeatable, up to 8 per call.
 
 Local file paths are auto-uploaded by the CLI (via the upload primitive) before
-the generation request is sent. URLs must be publicly accessible or
-GCS-signed URLs from a previous `clickraft upload`.
+the generation request is sent, which adds about 10 seconds. URLs must be publicly
+accessible or GCS-signed URLs from a previous `clickraft upload`.
+
+Whatever the flag order, the server sends images to the model in this order:
+brand-model images, then `--reference-image` (in flag order), then `--product` images.
+Write the prompt to match that order ("the person in the first image, the product in the
+last"). The model's reference cap covers all three together; going over it fails with
+`REFERENCE_LIMIT_EXCEEDED` and nothing is dropped silently.
 
 How it differs from the other flags:
 - `--brand-model` -- for trained identities (faces, personas). The server
@@ -227,13 +254,13 @@ The flags handle identity and product; the prompt handles composition. Keep the
 prompt focused on scene, pose, and lighting rather than re-describing who or
 what -- the flags already carry that context.
 
-Pose selection: for clothing, prefer `front` or `3/4-right` so the garment is
-visible. For accessories (bags, watches), `3/4-right` or `right` works well.
+Describe the angle in the prompt ("three-quarter view, garment fully visible"). Add a
+pose suffix only after checking it exists (see "Brand model context").
 
 ```bash
-clickraft generate create --json \
+clickraft generate create --json --no-wait \
   --model-slug nano-banana-2 \
-  --brand-model 8f3a1b2c-...:front \
+  --brand-model 8f3a1b2c-... \
   --product a1b2c3d4-... \
   --prompt "walking down a city street at golden hour, wearing the product"
 ```
@@ -261,23 +288,29 @@ clickraft generate create --json \
 
 ## Invocation pattern
 
-Always pass `--json` so the response is parseable. Default mode waits for completion (up to 120s):
+Always pass `--json` so the response is parseable. Submit with `--no-wait`, then wait:
 
 ```bash
-clickraft generate create \
-  --json \
+clickraft generate create --json --no-wait \
   --model-slug <slug> \
-  --prompt "<user's prompt>" \
-  --output ./clickraft-output/
+  --aspect-ratio <W:H> \
+  --prompt "<prompt in English>"
+clickraft generate wait <jobId> --json --timeout 100 --output ./clickraft-output/
 ```
 
-**Optional flags** (only pass when the user explicitly requests):
+Jobs can wait in the queue for minutes before they start, and one account's jobs may run
+one after another. Two or three timed-out waits in a row are normal. Keep waiting on the
+same jobId and never re-create the job. Don't chain `generate wait` with `&&`, because a
+timeout exits non-zero.
+
+**Optional flags:**
 
 | Flag | Use |
 |---|---|
-| `--aspect-ratio <W:H>` | e.g. `16:9`, `1:1` |
-| `--resolution <WxH>` | e.g. `1024x1024` |
-| `--brand-model <uuid>:<pose>` | Brand model identity; repeatable, up to 3. See "Brand model context" |
+| `--aspect-ratio <W:H>` | Always set from "Intent to aspect ratio" (default `1:1`) |
+| `--resolution <1K\|2K\|4K>` | nano-banana models only; omit for gpt-image models (size comes from the ratio) |
+| `--quality <tier>` | gpt-image models: `high` for `gpt-image-2.5-sunburst` (its default); `low`/`medium` for drafts |
+| `--brand-model <uuid>[:<pose>]` | Brand model identity; repeatable, up to 3. Bare uuid by default. See "Brand model context" |
 | `--product <uuid>:<imageId>` | Product catalog item; repeatable. See "Product context" |
 | `--reference-image <url\|path>` | Arbitrary reference; repeatable, up to 8. Local paths auto-uploaded. See "Reference image context" |
 
@@ -301,17 +334,11 @@ On success the CLI prints:
 }
 ```
 
-Read the final image URL from `data.resultUrl`. `data.thumbnailUrl` is faster to display. Both URLs are GCS-signed and stable for the asset's lifetime. Full envelope reference: `docs/ENVELOPE.md` in the [clickraft/skills](https://github.com/clickraft/skills/blob/main/docs/ENVELOPE.md) repo.
+Read the final image URL from `data.resultUrl`. `data.thumbnailUrl` is often null, so don't rely on it. Both URLs are GCS-signed and stable for the asset's lifetime. Full envelope reference: `docs/ENVELOPE.md` in the [clickraft/skills](https://github.com/clickraft/skills/blob/main/docs/ENVELOPE.md) repo.
 
-## Async pattern
+## The submit response
 
-If the user wants a job ID without waiting (equivalent: `--async`):
-
-```bash
-clickraft generate create --json --no-wait --model-slug <slug> --prompt "..."
-```
-
-Response has `data.status = "queued"` and `data.resultUrl = null`. Resume later with `clickraft generate wait <jobId> --json --output ./clickraft-output/` (long-poll) or `clickraft generate get <jobId> --json --output ./clickraft-output/` (single-shot). `--output` only saves a completed job; otherwise the CLI notes `Not saved: …` on stderr and `data.savedPath` is absent.
+`generate create --no-wait` (equivalent: `--async`) returns at once. The response has `data.status = "queued"` and `data.resultUrl = null`. Resume later with `clickraft generate wait <jobId> --json --output ./clickraft-output/` (long-poll) or `clickraft generate get <jobId> --json --output ./clickraft-output/` (single-shot). `--output` only saves a completed job; otherwise the CLI notes `Not saved: …` on stderr and `data.savedPath` is absent.
 
 ## Cost handling
 
@@ -324,9 +351,10 @@ Surface cost ONLY when:
    `data.affordable` / `data.blockedReason` say whether the account can run it
    now. It charges nothing. (Needs the CLI release that ships `generate
    estimate`; an older CLI answers "Unknown command".)
-2. **High-cost configuration.** Resolution ≥ 4k or any high-quality flag → run
-   `generate estimate` first and say "this will use N credits" before
-   submitting. Don't ask — just inform.
+2. **High-cost configuration.** `--resolution 4K`, `nano-banana-pro`, or
+   `--quality xhigh`/`max` → run `generate estimate` first and say "this will use N
+   credits" before submitting. Don't ask, just inform. `--quality high` on
+   `gpt-image-2.5-sunburst` is its normal default and needs no estimate.
 3. **Insufficient balance.** On `E_INSUFFICIENT_CREDITS`, tell the user the
    exact gap and link to billing.
 
@@ -340,6 +368,8 @@ On failure the envelope returns `ok: false` and the exit code is non-zero. Top e
 |---|---|
 | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. Do not retry. |
 | `E_INSUFFICIENT_CREDITS` | Tell the user their account is out of credits + link to billing. Do not retry. |
+| `E_TIMEOUT` (from `generate wait`, exit 6) | Not a failure: the job is still queued or running. Run `generate wait <same jobId>` again; never re-create it. |
+| `E_BRAND_MODEL_POSE_NOT_FOUND` | That model has no image for the pose. Drop the pose and submit with the bare uuid. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (default 1000 if unset) and retry once. |
 | `E_MODEL_NOT_FOUND` | Re-list models with `clickraft models list --json` and pick a different slug. |
 | `E_GEN_CONTENT_REFUSAL` | The model refused the prompt for safety. Ask the user to rephrase. |

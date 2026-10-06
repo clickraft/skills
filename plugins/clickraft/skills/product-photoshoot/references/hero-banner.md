@@ -31,7 +31,7 @@ cinematic, one strong focal point, brand mood read in a glance.
 | lifestyle-environmental | `natural-confident`, `atmospheric-documentary`, `narrative-portrait` |
 | editorial-portrait | `monochrome-editorial-portrait`, `narrative-portrait`, `dramatic-editorial` |
 | abstract-brand-mood | `abstract-editorial`, `surreal-levitation`, `graphic-color-block` |
-| studio-product-wide | `classical-still-life`, `graphic-color-block`, `surreal-levitation` |
+| studio-product-wide | `clean-ecommerce`, `graphic-color-block`, `classical-still-life` |
 | seasonal-campaign | `whimsical-fantasy`, `glossy-high-fashion`, `dramatic-editorial` |
 | panoramic-landscape | `epic-monochrome`, `environmental-landscape`, `natural-confident` |
 | split-composition | `abstract-editorial`, `cinematic-staged-narrative`, `whimsical-fantasy` |

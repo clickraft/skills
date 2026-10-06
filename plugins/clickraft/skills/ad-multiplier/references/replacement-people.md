@@ -20,10 +20,17 @@ clickraft generate create --json --no-wait \
 clickraft generate wait <jobId> --json --timeout 90 --output ./clickraft-output/
 ```
 
+Budget about 2 minutes per portrait, including queue time; a wait that returns
+`E_TIMEOUT` is re-run on the same jobId, never re-created.
+
 No reference images, no brand model — the person is described in words only. If the
 user has a trained brand model they want to use instead, that is a user-supplied
-identity: render it with `--brand-model <uuid>:front` in the same studio framing and
-skip the contrast plan.
+identity: render it with the bare `--brand-model <uuid>` (the server uses the model's
+primary image) in the same studio framing and skip the contrast plan. Add a pose
+(`<uuid>:<pose>`) only if the user asks for an angle, and check it first with the free
+`generate estimate`: a pose works only if that model has an image of that angle stored
+(shared system models reject every pose), and a missing one returns
+`E_BRAND_MODEL_POSE_NOT_FOUND` — then drop the pose.
 
 ## Contrast plan (before writing)
 

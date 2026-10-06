@@ -33,9 +33,10 @@ Append the named block after the scene paragraph, word for word.
 
 > Treat the attached photo as the only source of truth for the product. If that photo was
 > taken from above or at a tilt, do not copy its camera angle: stand the product upright
-> and level in its normal orientation for this shot. Keep the product identical to the
-> photo in outline, proportions, materials, surface finish, colors, closure, logo position
-> and packaging construction. Reproduce every printed element, including small print,
+> and level in its normal orientation for this shot. Keep separate pieces (lid, cap,
+> accessories) arranged as in the photo; do not assemble or remove them. Keep the product
+> identical to the photo in outline, proportions, materials, surface finish, colors,
+> closure, logo position and packaging construction. Reproduce every printed element, including small print,
 > stickers and secondary marks, letter for letter as in the photo; never translate,
 > respell or swap any word or character, and draw text too small to read as the same
 > faithful shapes rather than new words. Add nothing that was not requested: no extra
@@ -55,8 +56,10 @@ Fidelity block: **STUDIO-STRICT**
 > space around it. Lighting: one broad soft key from high front-left, a faint rim light
 > to separate the edges from the background, and highlights that behave the way the
 > product's real materials would. A single soft shadow anchors it to the floor. Camera at
-> product height, tilted up very slightly for a heroic feel, with a medium telephoto lens
-> so perspective stays compressed and the whole product is sharp. No props, set pieces or
+> eye level with the product, not above it: the horizon line where floor meets backdrop
+> sits behind the product, and the camera tilts up very slightly for a heroic feel; do
+> not inherit the viewpoint of the attached photo, even if it was shot from above. Medium
+> telephoto lens so perspective stays compressed and the whole product is sharp. No props, set pieces or
 > scenery beyond the sweep and backdrop, unless they are already in the photo.
 
 ## minimalist-white

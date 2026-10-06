@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: product-photoshoot
 description: |
   Finished product photography with the Clickraft CLI: packshots, lifestyle scenes,
@@ -93,7 +93,9 @@ or similar, and a product is available (catalog item, image, or a usable descrip
 ask nothing. Resolve:
 
 - 3 variants;
-- `clean-studio` preset for an otherwise unspecified product shot;
+- `clean-studio` preset for an otherwise unspecified product shot — every variant uses
+  that same default preset and they differ only by camera angle, product arrangement
+  and light direction, never by switching preset;
 - `1:1` when the use case implies no other ratio (mode defaults apply otherwise);
 - palette taken from the product itself or from colors already stated, else neutral;
 - craft language from the matching entries in `style-descriptors.md`.
@@ -126,8 +128,11 @@ locked craft decisions.
 Resolve the product once and reuse the same handle for every first pass in the set.
 
 - **Catalog product** — `clickraft product list --json --search "<name>"`; read
-  `data.products[].id` and `.title`. One match → use it. Several → show titles and ask.
-  Pass `--product <uuid>` (or `<uuid>:<imageId>` to pin one photo).
+  `data.products[].id` and `.title`. One match → use it. Several → titles alone often
+  cannot tell them apart (the catalog regularly holds two products with the same
+  title): show each candidate's primary image (or its image count and the last few
+  characters of its id) and ask, or pick the one whose image matches what the user
+  showed. Pass `--product <uuid>` (or `<uuid>:<imageId>` to pin one photo).
 - **Image** — a local path or URL the user gave: `--reference-image <path|url>`. Local
   files are uploaded by the CLI (deduplicated by content, so reuse is free).
 - **Text only** — allowed when category, form, packaging, material, color, label
@@ -167,6 +172,12 @@ file says, and you tell the user in the delivery line.
 - End every prompt with the line `Render at 2K resolution.` and pass `--resolution 2K`.
 - Make each variant materially different (composition, preset, hook or scene). Distinct
   prompts are separate calls; never rely on one call returning several images.
+- When the product is a set (teapot with cups, a duo, a kit), state the exact piece
+  count and arrangement in the product section ("exactly four identical cups") and
+  name its small structural parts as they appear in the reference (strainer, gasket,
+  handle joins, caps), with their material.
+- Describe light by its effect, never by its equipment — named gear (softbox, strobe,
+  reflector) tends to appear in the frame.
 
 ## One product identity across a set
 
@@ -199,19 +210,23 @@ Read `data.jobId` into the ledger. Then wait for each job:
 clickraft generate wait <jobId> --json --timeout 90 --output ./clickraft-output/
 ```
 
-- Jobs run in parallel server-side, so waiting one after another is fine; later waits
-  usually return at once. One or two waits per Bash call (the call dies near 2 minutes).
-- A wait that times out is not a failure: run `generate wait` again on the SAME jobId.
-  Never resubmit a slow job. After about 12 waits for one set, stop and tell the user
-  which images are still pending; resume those jobIds on their next turn.
+- Jobs can sit queued for several minutes, and one account's jobs may run one after
+  another rather than in parallel. Budget about 2 minutes per image (a set of 3 ≈ 6
+  minutes), and expect several timed-out waits in a row — that is normal. One wait per
+  Bash call (the call dies near 2 minutes), and never chain anything after a wait with
+  `&&`: a timeout exits non-zero.
+- A wait that times out (`E_TIMEOUT`) is not a failure: run `generate wait` again on the
+  SAME jobId. Never resubmit a slow job. After about 12 waits for one set, stop and tell
+  the user which images are still pending; resume those jobIds on their next turn.
 - Freeze completed indexes. Retry only a failed index, once, and count it as an attempt.
   Never retry the whole set. Do not retry safety, auth, quota or billing errors.
 
 ## Visual QA and refinement
 
 Open each `data.savedPath` with Read. Judge only what you can see: product shape,
-markings, colors, materials, composition, requested text, and the mode's quality
-gates. A URL, status or prompt is not evidence. Do not claim tiny text is verified from
+markings, colors, materials, piece count, small structural details (strainer, gasket,
+handle joins, caps) against the reference, stray studio equipment in frame,
+composition, requested text, and the mode's quality gates. A URL, status or prompt is not evidence. Do not claim tiny text is verified from
 a downscaled view. If you cannot view an image, say it was not visually checked and do
 not spend credits refining a defect you have not seen.
 
@@ -262,6 +277,7 @@ defect through a refinement on that index.
 |---|---|
 | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. Do not retry. |
 | `E_INSUFFICIENT_CREDITS` | Stop the set. Say which indexes finished and how many credits the rest need; link to billing. Do not retry. |
+| `E_TIMEOUT` (exit 6) | Not a failure — the job keeps running. Run `generate wait <same jobId>` again; never re-create the job. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (default 1000) and retry that one call once. |
 | `E_MODEL_NOT_FOUND` | Re-check `clickraft models list --json`. If `nano-banana-pro` is gone, stop and tell the user; do not switch model. |
 | `E_GEN_CONTENT_REFUSAL` | That index was refused for safety. Do not retry it as-is; tell the user and suggest a rephrased direction. |

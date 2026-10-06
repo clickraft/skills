@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: product-video-presets
 description: |
   One-shot product videos from a single product photo with the Clickraft CLI. 18 named
@@ -101,7 +101,12 @@ Default: act. Ask ONE question only when:
   photo or a product name. A pasted image without a path: ask the user to give its file
   path or a URL.
 - The product is named but `clickraft product list --json --search "<name>"` returns
-  several matches: list the titles and ask which one.
+  several matches: ask which one. The search often returns two products with the same
+  title, so titles alone cannot disambiguate — pick the one whose image matches what the
+  user showed, or show each candidate's primary image (or its image count and id
+  suffix) and ask.
+- The photo shows a loose lid or cap lying beside the product: ask once whether to show
+  it closed (see [references/start-frame.md](references/start-frame.md)).
 - The request fits no preset and is not a product clip (route to another skill instead).
 
 The video cost confirmation (see "Cost handling") is always required.
@@ -134,9 +139,12 @@ Fixed per stage. Do not run model discovery for a preset.
 - **Stage 2:** `seedance-2-standard-i2v`, `--duration-seconds 6`, `--resolution 720p`.
   - The preset spec is 1080p. Our maximum is **720p**. Tell the user once: "Rendered in
     720p (the highest available)."
-  - **Audio:** the CLI has no audio-off switch and this model can add sound. The motion
-    prompt already asks for silence. Tell the user once that the clip may carry faint
-    ambient sound, which they can mute.
+  - **Audio:** the CLI has no audio-off switch, but the motion prompt's no-sound wording
+    works: a live `product-spin` test came out silent (about −91 dB). No audio caveat is
+    needed.
+  - **Confirmed live** (staging, `product-spin`): `--duration-seconds 6` is accepted by
+    `seedance-2-standard-i2v` even though its `constraints.modes` lists only 5 and 10,
+    and a stage-1 `data.resultUrl` works directly as `--start-frame`.
 - Use `seedance-2.5-i2v` (higher fidelity, about 946 credits/s) only when the user asks
   for higher quality. Same flags, same prompts.
 
@@ -158,10 +166,13 @@ clickraft generate wait <jobId> --json --timeout 100 --output ./clickraft-output
 
 For a catalog product, use `--product <uuid>` in place of `--reference-image`.
 
-- If `generate wait` times out, run it again on the **same** jobId. Never re-create.
+- One wait per Bash call (calls die near 2 minutes), never chained with `&&`. If
+  `generate wait` times out (`E_TIMEOUT`, exit code 6), run it again on the **same**
+  jobId. Never re-create. Budget about 2 minutes for the start frame, including queue.
 - `ok:false` or `status` failed/cancelled: stop. Do not start stage 2.
 - On success, open `data.savedPath` with Read and check it (see
-  [references/start-frame.md](references/start-frame.md)). Keep `data.resultUrl`.
+  [references/start-frame.md](references/start-frame.md)), including centring and size;
+  a low, off-centre or small product means one stage-1 regeneration. Keep `data.resultUrl`.
 
 ### Stage 2: video
 
@@ -178,12 +189,15 @@ clickraft generate create --json --no-wait \
 clickraft generate wait <jobId> --json --timeout 100 --output ./clickraft-output/
 ```
 
-- Video takes minutes. Re-run `generate wait <jobId>` until it is done. **Never**
+- Video takes minutes: about 3–5 minutes of rendering once it starts, and a job can sit
+  in `queued` (`startedAt` null) for several minutes first, behind the organisation's
+  other jobs (they may run one after another, not in parallel). Several timed-out waits
+  in a row are normal. Re-run `generate wait <jobId>` until it is done. **Never**
   re-submit on a timeout; that charges again.
 - Keep the backdrop color from stage 1. Only `light-sweep`, `shadow-motion` and
   `sunrise-pass` change the light for a moment, by design.
 - Deliver `data.savedPath` and `data.resultUrl` with one line on what the clip shows,
-  plus the 720p and ambient-audio notes the first time.
+  plus the 720p note the first time.
 
 ### More than one video
 
@@ -207,6 +221,7 @@ start frame for that ratio. Quote the total for all videos before you submit any
 |---|---|
 | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. Do not retry. |
 | `E_INSUFFICIENT_CREDITS` | Say how many credits are missing and point to billing. Do not retry. |
+| `E_TIMEOUT` (exit 6, from `generate wait`) | Not a failure — the job keeps running. Run `generate wait <same jobId>` again; never re-create the job. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (default 1000) and retry once. |
 | `E_MODEL_NOT_FOUND` | Run `clickraft models list --json --category video` and pick the closest `*-i2v` slug. Tell the user. |
 | `E_GEN_CONTENT_REFUSAL` | The model refused. With stage 1, ask for a different photo. With stage 2, say the preset could not run on this product. |

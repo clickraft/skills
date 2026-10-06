@@ -2,7 +2,9 @@
 
 ## Fill-in template (photoreal, split-screen)
 
-Replace each `[SLOT]`; keep everything else. Send as one line.
+Replace each `[SLOT]`; keep everything else. Send as one line. `[REALISM MODULE]` is
+the photoreal realism module from `style-presets.md`, copied verbatim (plus its makeup
+clause only if the character wears makeup).
 
 ```
 Two-panel character sheet: on the left, the character shown full length, standing
@@ -13,10 +15,8 @@ original [SUBJECT] in both panels, one subject only, seamless white studio backd
 clean character-sheet presentation, [AGE BAND] with [SKIN TONE], [FACE SHAPE] with
 [JAW] and [CHEEKBONES], [NOSE], [LIPS + finish], [EYE shape/color] with soft small
 catchlights and no glare, [BROWS], [HAIR color/undertone/length/style/finish/parting],
-true-to-life skin with fine pores, faint lines and small natural asymmetries, everyday
-makeup blended slightly unevenly instead of a flawless base, [FLUSH / imperfection
-anchor], a soft natural sheen only, no retouching, no smoothing, no beauty filter, no
-airbrushed finish, no shine spots on the skin, matte-to-natural complexion, [BUILD] with
+[REALISM MODULE], [IMPERFECTION ANCHOR — sided ones as "on the character's own left
+(the viewer's right)"], [BUILD] with
 natural proportions, wearing [TOP], [LAYER], [BOTTOMS], [BELT], [SHOES], [JEWELRY],
 [BAG or "no bag"], soft diffused studio light with no harsh reflections, anatomically
 natural, premium commercial photography left unretouched, cinematic realism, 4K detail,
@@ -43,6 +43,7 @@ Slot fills:
 - Eyes: almond-shaped, slightly downturned hazel eyes (+ low-glare clause)
 - Brows / hair: full natural brows; dark chestnut hair with warm undertones, shoulder
   length, loose air-dried waves with a soft matte finish, middle parting
+- Realism: the module verbatim, with the makeup clause (she wears everyday makeup)
 - Imperfection anchor: a few faint freckles across the nose
 - Body: slim build, natural proportions
 - Wardrobe: off-white relaxed linen shirt with rolled sleeves, sand-colored high-waisted
@@ -70,14 +71,16 @@ no frame borders
 ```
 
 ```bash
-clickraft generate create --json --model-slug nano-banana-2 --resolution 2K \
+clickraft generate create --json --no-wait --model-slug nano-banana-2 --resolution 2K \
   --aspect-ratio 16:9 \
-  --brand-model "${UUID}:front" \
-  --prompt "<prompt above>" --output ./clickraft-output/
+  --brand-model "${UUID}" \
+  --prompt "<prompt above>"
+clickraft generate wait <data.jobId> --json --output ./clickraft-output/
 ```
 
-Pass the identity once — the CLI rejects the same uuid twice, so the four views come
-from the layout clause. Drop `:front` for a system brand model.
+Pass the identity once, as the bare uuid — the CLI rejects the same uuid twice, so the
+four views come from the layout clause. Add a pose only if the user asks for an angle
+and a free `generate estimate` with the same flags accepts it.
 
 ## Revision example
 

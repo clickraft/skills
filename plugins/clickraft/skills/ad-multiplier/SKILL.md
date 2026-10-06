@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: ad-multiplier
 description: |
   Turn one existing 4–15 second ad clip into several independently edited versions with
@@ -32,8 +32,11 @@ is its own independent edit of the same source.
 Engine: `seedance-2.5-r2v` with `--task editing`. It edits exactly ONE
 `--reference-video` and keeps its motion, camera, cuts and timing; the output has the
 source's length and aspect ratio. Replacement references go in as `--reference-image`
-and are cited in the prompt as `@Image1`, `@Image2`… in the order passed. The source is
-always `@Video1`.
+and are cited in the prompt as `@Image1`, `@Image2`… in the order passed. That holds
+only while every reference is a `--reference-image`: the server always numbers
+`--brand-model` images first, then `--reference-image` URLs, then `--product` images
+last, whatever the flag order — so keep catalog products and brand models as
+`--reference-image` URLs here. The source is always `@Video1`.
 
 ## Quick start
 
@@ -114,10 +117,14 @@ If a target, range or pairing is ambiguous, ask one bundled mapping question; ne
   uploads it), or upload it once with `clickraft upload <file> --json` and reuse the
   returned URL for every version so it is not re-sent. A previous job's
   `data.resultUrl` is also valid.
-- **User reference images.** Local paths or URLs into `--reference-image`; up to 8 per
-  call. Catalog products: `clickraft product list --json --search "<name>"`, then pass
-  the primary `data.products[].images[].url` as a `--reference-image` so its `@ImageN`
-  position stays explicit. Keep one fixed order per version: user images first, then
+- **User reference images.** Local paths or URLs into `--reference-image` (a local path
+  uploads automatically, about 10 s each); up to 8 per call. Catalog products:
+  `clickraft product list --json --search "<name>"`, then pass the primary
+  `data.products[].images[].url` as a `--reference-image` so its `@ImageN` position
+  stays explicit. The search often returns two products with the same title; titles
+  alone cannot tell them apart, so pick the one whose image matches what the user
+  showed, or show each candidate's primary image (or its image count and id suffix) and
+  ask. Keep one fixed order per version: user images first, then
   generated people.
 - **Missing adult replacement people.** Follow
   [references/replacement-people.md](references/replacement-people.md): one generated
@@ -172,12 +179,17 @@ source. Record `data.jobId`, then:
 clickraft generate wait <jobId> --json --timeout 100 --output ./clickraft-output/
 ```
 
-- One wait per Bash call (calls die near 2 minutes). A wait that times out is not a
-  failure: run `generate wait` again on the SAME jobId. Never resubmit a pending job —
-  that charges again. After about 15 waits on one job, tell the user it is still
-  rendering and resume it on their next turn.
-- Jobs render in parallel server-side, so you may submit the next version before the
-  previous one finishes; just keep each jobId under its index.
+- One wait per Bash call (calls die near 2 minutes), never chained with `&&`. A wait
+  that times out (`E_TIMEOUT`, exit code 6) is not a failure: run `generate wait` again
+  on the SAME jobId. Never resubmit a pending job — that charges again. After about 15
+  waits on one job, tell the user it is still rendering and resume it on their next
+  turn.
+- A job can sit in `queued` (`startedAt` null) for several minutes before it starts, and
+  an organisation's jobs may run one after another rather than in parallel. Video
+  renders take roughly 3–5 minutes once started, so several timed-out waits in a row
+  are normal; tell the user up front that each version can take several minutes plus
+  queue time. You may still submit the next version before the previous one finishes;
+  keep each jobId under its index.
 - A terminal failure gets one resubmission with the same plan; then report it.
 
 ## Review and delivery
@@ -220,6 +232,7 @@ Never lower the resolution or drop versions to save credits without asking.
 |---|---|
 | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. Do not retry. |
 | `E_INSUFFICIENT_CREDITS` | Stop. Say which versions finished and what the rest need; link to billing. Do not retry. |
+| `E_TIMEOUT` (exit 6, from `generate wait`) | Not a failure — the job keeps running. Run `generate wait <same jobId>` again; never re-create the job. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (default 1000) and retry that one call once. |
 | `E_MODEL_NOT_FOUND` | Re-check `clickraft models list --json`. If `seedance-2.5-r2v` or its `editing` task is gone, stop and tell the user; do not switch model. |
 | `E_GEN_CONTENT_REFUSAL` | That version was refused for safety. Do not retry it as-is, do not drop references to get around it; tell the user. |

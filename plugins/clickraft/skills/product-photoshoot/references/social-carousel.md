@@ -27,7 +27,7 @@ handful of unrelated images.
 | Category | Keys |
 |---|---|
 | Lifestyle / DTC | `warm-editorial-table`, `sunlit-airy-lifestyle`, `handcrafted-moody-warm` |
-| Product / clean | `graphic-color-block`, `surreal-levitation`, `playful-pop-still-life` |
+| Product / clean | `clean-ecommerce`, `graphic-color-block` |
 | Editorial / fashion | `natural-confident`, `whimsical-fantasy`, `glossy-high-fashion` |
 | Beauty | `skin-sculpting-light`, `glossy-beauty`, `sunlit-airy-lifestyle` |
 | Food / drink | `warm-editorial-table`, `bright-modern-food`, `surreal-levitation` |

@@ -59,7 +59,8 @@ photoreal detail — not documentary photography.
 
 [PRODUCT]
 {{exact product}}, {{material and finish}}, {{label or logo}}, crisp and real despite the
-staging.
+staging. {{for a set: exact piece count and arrangement, e.g. "exactly four identical
+cups"}}.
 
 [COMPOSITION]
 {{floating / sculptural / suspended / geometric}}, {{the one surreal element}}, strong
@@ -70,7 +71,8 @@ visual hierarchy.
 objects balance impossibly / stylized shadow}}.
 
 [LIGHTING]
-{{the preset's setup}}, crisp highlights on glass, metal and liquid.
+{{the preset's setup, written as its effect — no gear named}}, crisp highlights on glass,
+metal and liquid.
 
 [BACKGROUND & ENVIRONMENT]
 {{clean gradient / impossible space / geometric set / infinity cove}}, supporting the

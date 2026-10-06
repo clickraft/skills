@@ -37,13 +37,16 @@ block 4 as "the trained identity" instead of an image number.
   `Clean, bold explanatory graphic for a video thumbnail: <the chart or diagram>, flat shapes, two or three strong colors, generous empty space. <ratio> aspect ratio. Not a photograph.`
   It then drops blocks 10 and 11.
 
-**2. Scene brief.** Only when the user described the content, or the reference gave a brief.
+**2. Scene brief.** Only when the user described the content (a video title or topic counts),
+or the reference gave a brief.
 `SCENE, to be shown exactly as described: <scene in English>.`
 
 **3. Text.** Always present. The default line:
 `No text, no readable UI labels, no watermark.`
 - Text baked in on an explicit ask (see [headline-text.md](headline-text.md)):
-  `HEADLINE baked into the image, spelled exactly "<TEXT>": huge, heavy sans-serif letters with a clean dark outline and a soft glow, placed in open space so it never covers a face. No other text anywhere, no watermark.`
+  `HEADLINE baked into the image, spelled exactly "<TEXT>": huge, heavy sans-serif letters, <style cue>, placed in open space so it never covers a face. No other text anywhere, no watermark.`
+  `<style cue>` is the chosen headline style in a few words (see headline-text.md); the
+  default is Bold White: `white with a thick black outline and a hard drop shadow`.
 - An explicitly requested text-carrying framework (message bubble, review card, news band, day badge, map label):
   `ON-IMAGE ELEMENT: a <generic element> showing exactly "<short text>", neutral generic styling with no real brand, app, channel or network name or logo. No other text, no watermark.`
   Keep the words short and true to the video.
@@ -217,10 +220,10 @@ the split rule, `emotion` and `emotion_detail` to the Expression slot.
 Each tweak takes the finished image's `resultUrl` as its only `--reference-image` and
 states that everything else stays as it is.
 
-- **Expression swap:** `Edit only the person's facial expression, changing it to: <phrase>. Keep the identity, face structure, hair, pose, body, clothing, logo, background, lighting and composition exactly as they are in the image. Only the expression changes; the thumbnail lighting stays intact.`
-- **Background swap:** `Replace only the background with: <desc>. Keep the subject, face, identity, pose, clothing, logo and every foreground element exactly as they are. Re-light the edges of the subject so the new background's light direction, color and rim light look natural, keeping the thumbnail lighting on the face.`
-- **Background recolor:** `Shift only the background colors toward <color>. Keep the background's shapes, content and depth exactly; only the color changes. Adjust the faint color spill on the subject's edges to match, but leave the key light and fill on the face untouched.`
-- **Rim light recolor:** `Change only the color of the rim light (the back light and hair light tracing the hair, shoulders and outline) to <color phrase>. Do not change the key light or fill, the background, the pose, the identity, the clothing, the logo or the composition.`
+- **Expression swap:** `Edit only the person's facial expression, changing it to: <phrase>. Keep the identity, face structure, hair, pose, body, clothing, logo, background, lighting and composition exactly as they are in the image, and any headline text unchanged and spelled exactly. Only the expression changes; the thumbnail lighting stays intact.`
+- **Background swap:** `Replace only the background with: <desc>. Keep the subject, face, identity, pose, clothing, logo and every foreground element exactly as they are, and any headline text unchanged and spelled exactly. Re-light the edges of the subject so the new background's light direction, color and rim light look natural, keeping the thumbnail lighting on the face.`
+- **Background recolor:** `Shift only the background colors toward <color>. Keep the background's shapes, content and depth exactly; only the color changes. Keep any headline text unchanged and spelled exactly. Adjust the faint color spill on the subject's edges to match, but leave the key light and fill on the face untouched.`
+- **Rim light recolor:** `Change only the color of the rim light (the back light and hair light tracing the hair, shoulders and outline) to <color phrase>. Do not change the key light or fill, the background, the pose, the identity, the clothing, the logo or the composition, and keep any headline text unchanged and spelled exactly.`
 
 Tweaks chain: the accepted output's `resultUrl` becomes the source of the next tweak.
 

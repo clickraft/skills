@@ -40,8 +40,10 @@ Before you submit, check every quoted string: can you name its source? If not, d
 
 Visible effect: the product's key benefits.
 Content: up to four benefit labels. From the user if given; otherwise claims printed on
-the pack; otherwise neutral, verb-led physical labels ("Twist to open", "Fits a
-pocket"). Optional title: only a product name taken from the pack or catalog `title`.
+the pack; otherwise visible-attribute noun phrases (form, finish, closure: "Matte glass
+jar", "Wooden lid"). Use a verb-led label only for an action the closure visibly shows
+("Twist cap" may become "Twist to open"); never a function, fit or use you cannot see.
+Optional title: only a product name taken from the pack or catalog `title`.
 
 > Clean informational layout. The product stands upright and dominant on a plain studio
 > floor, with up to four short benefit labels arranged around it, each paired with a
@@ -54,24 +56,28 @@ pocket"). Optional title: only a product name taken from the pack or catalog `ti
 
 Visible effect: the single most important benefit.
 Content: one benefit. From the user; otherwise the most prominent claim printed on the
-pack; otherwise one physical attribute you can see (portability, organization,
-protection, texture, ease of use).
+pack; otherwise one visible-attribute noun phrase (form, finish, closure, texture:
+"Hand-poured glass"), never a function or use you cannot see.
 
 > Single-message marketing still. One strong visual metaphor dramatizes one benefit of
 > the product: {benefit_visual}. One short line of text reads "{benefit}". The product
 > is the clear focal point and the metaphor supports it without crowding it.
 
 `{benefit_visual}` = a plain description of the metaphor you chose for that benefit (for
-"Fits a pocket": "the product slipping into a jacket pocket").
+"Matte glass": "soft light grazing the matte surface of the product").
 
 ## three-reasons
 
 Visible effect: three reasons to choose the product.
-Content: exactly three reasons, same sources and fallback as `benefits`.
+Content: exactly three reasons, same sources and fallback as `benefits`. When neither
+the user nor the pack gave any claim, the reasons are visible features: say so in one
+line on delivery (for example "No claims were given, so the three reasons are visible
+features of the product.").
 
 > Structured marketing layout: the product on one side, three short reasons stacked
-> beside it in a clear hierarchy, each with a simple icon: "{reason1}", "{reason2}",
-> "{reason3}". Plain background, generous spacing, nothing else in the frame.
+> beside it, the first reason set noticeably larger than the other two, each with a
+> simple icon: "{reason1}", "{reason2}", "{reason3}". Plain background, generous spacing,
+> nothing else in the frame.
 
 ## specs
 

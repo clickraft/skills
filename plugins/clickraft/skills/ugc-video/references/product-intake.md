@@ -20,9 +20,12 @@ Read and identify the category, the exact use mechanic, the opening mechanic and
 visual details.
 
 **Catalog product.** `clickraft product list --json --search "<name>"`. One match → use
-it; several → show titles and ask. Take the image marked `isPrimary` from
-`data.products[].images[].url` (else the first) and pass it as a `--reference-image` so
-its `@ImageN` position is explicit. Up to two more images of the same item may be kept
+it; several → ask which. The search often returns two products with the same title, so
+titles alone cannot disambiguate: pick the one whose image matches what the user
+showed, or show each candidate's primary image (or its image count and id suffix) and
+ask. Take the image marked `isPrimary` from `data.products[].images[].url` (else the
+first) and pass it as a `--reference-image` so its `@ImageN` position is explicit — not
+as `--product`, which the server always numbers after every `--reference-image`. Up to two more images of the same item may be kept
 when a later stage truly needs another side.
 
 **Only a URL.** This skill cannot browse. Ask the user once for a product photo or the

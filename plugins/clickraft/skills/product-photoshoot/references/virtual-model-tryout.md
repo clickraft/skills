@@ -10,11 +10,16 @@ hats, footwear.
 
 - Renders a new model from the prompt description each time.
 - Does not keep the same person across images unless the user has a trained identity:
-  then add `--brand-model <uuid>[:pose]` (find it with `clickraft brand-model list
+  then add `--brand-model <uuid>` (find it with `clickraft brand-model list
   --json`; `data[].id`, `data[].name`). Without one, a set shows the same "type" of
   person, not the same individual — say so if the user expects one face throughout.
-- Pose hints for a brand model: `front` or `3/4-right` for garments, `3/4-right` or
-  `right` for bags and watches.
+- Pass the bare uuid by default; the server uses the model's primary image. Add a pose
+  (`<uuid>:<pose>` — `front`, `3/4-right`, `right`, `left`, `3/4-left`, `back`,
+  `face-closeup`, `hands`, `approved`) only when the user asks for that angle, and only
+  if that model has an image of it stored: check first with the free `clickraft
+  generate estimate --json` and the same flags. `E_BRAND_MODEL_POSE_NOT_FOUND` means it
+  is missing — drop the pose and use the bare uuid. Shared system models reject every
+  pose.
 - Models are always adults. No suggestive posing.
 
 ## Presets
@@ -80,7 +85,7 @@ tone}}. Natural features, correct anatomy, realistic proportions.
 product without competing.
 
 [LIGHTING]
-{{the preset's setup}}, {{skin highlight behaviour}}.
+{{the preset's setup, written as its effect — no gear named}}, {{skin highlight behaviour}}.
 
 [LENS & CAMERA]
 {{50mm / 85mm / 35mm}}, {{f/2.8–f/5.6}}, focus on {{the product area}}, {{shallow / medium}} depth.

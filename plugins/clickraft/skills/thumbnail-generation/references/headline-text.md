@@ -41,7 +41,8 @@ If the user already said which they want, do not ask.
 
 1. Keep the headline to 2 to 6 words. Use block 3's HEADLINE line with the text exactly as
    the user wrote it, in their language and script; do not translate or "fix" it.
-2. Choose the placement the same way as path (a) and say it in block 8.
+2. Choose the free quarter the same way as path (a), but add this to block 8 instead:
+   `Place the headline in the <top | bottom | left | right> quarter, clear of faces and key elements.`
 3. After each render, open the saved file and compare the painted text with the ordered
    string **character by character**: every letter, number, accent, punctuation mark and
    space, and nothing extra anywhere in the image.
@@ -54,8 +55,9 @@ day badge, map label) follow path (b)'s check too, using the block 3 ON-IMAGE EL
 
 ## The five headline styles (art direction for path a, and a style cue for path b)
 
-For path (b), translate the chosen style into a few words inside the HEADLINE line (for
-example "white letters with a thick black outline and a hard drop shadow").
+For path (b), translate the chosen style into a few words for the `<style cue>` slot of the
+HEADLINE line (for example "white with a thick black outline and a hard drop shadow"
+for Bold White, the default).
 
 Shared rules for every style:
 
@@ -69,8 +71,8 @@ Shared rules for every style:
   `paint-order: stroke fill` with `-webkit-text-stroke`; in a design tool use an outside
   stroke. A centered stroke drawn on top eats into the letters and is the most common
   reason home-made thumbnail type looks thin.
-- Build the file at the image's native size (the 4K render, for example 3840 x 2160 for
-  16:9), so sizes in percent stay correct.
+- Build the file at the render's native pixel size, read from the saved file (a 4K 16:9
+  render, for example, is 5504 x 3072), so sizes in percent stay correct.
 
 ### 1. Bold White (default)
 

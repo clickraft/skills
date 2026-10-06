@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: character-sheet
 description: |
   Build a consistent character sheet (model sheet, turnaround, expression sheet,
@@ -39,8 +39,9 @@ Two modes:
 ## Quick start
 
 ```bash
-clickraft generate create --json --model-slug nano-banana-2 --resolution 2K \
-  --aspect-ratio 16:9 --prompt "<assembled sheet prompt>" --output ./clickraft-output/
+clickraft generate create --json --no-wait --model-slug nano-banana-2 --resolution 2K \
+  --aspect-ratio 16:9 --prompt "<assembled sheet prompt>"
+clickraft generate wait <data.jobId> --json --output ./clickraft-output/
 ```
 
 Open `data.savedPath` (Read) and check the sheet before replying: one character only,
@@ -51,8 +52,8 @@ same face and outfit in every panel, correct layout, no stray text.
 These override the brief unless the user explicitly asks otherwise.
 
 1. **Realistic means unretouched.** For photoreal styles, "real" is never "flawless".
-   Pores, small asymmetries, matte skin, makeup that is slightly uneven, no glare, no
-   smoothing. The realism module in `references/style-presets.md` is mandatory for the
+   Pores, small asymmetries, matte skin, makeup (if the character wears any) slightly
+   uneven, no glare, no smoothing. The realism module in `references/style-presets.md` is mandatory for the
    photoreal preset.
 2. **Original characters, or identities the user owns.** Never reproduce a celebrity or
    a copyrighted character. A named star or franchise is at most a loose mood — build a
@@ -97,6 +98,9 @@ an existing character description, keep every physical detail as written.
 
 1. **Read the brief.** Pull out identity, wardrobe, style, and whether a photo or brand
    model supplies the face. If revising, carry every prior detail forward (rule 4).
+   A brand mention ("for my coffee brand") means brand colours and wardrobe cues in the
+   wardrobe slot; logos and wordmarks stay out of the sheet and are added later
+   (`references/layouts.md` § Exclusion tail).
 2. **Pick a style preset** → realism/render, lighting and quality-tail modules.
    See `references/style-presets.md`.
 3. **Pick a layout** → opening clause, aspect ratio, layout-specific exclusions.
@@ -158,7 +162,7 @@ separate negative-prompt field, so the exclusion tail stays inline in the prompt
 
 | Source | Flag | Notes |
 |---|---|---|
-| Trained brand model | `--brand-model <uuid>` or `<uuid>:<pose>` | Poses: `front`, `3/4-right`, `right`, `left`, `3/4-left`, `back` (also `approved`). One flag per identity; up to 3 **different** brand models per call. |
+| Trained brand model | `--brand-model <uuid>` (default) or `<uuid>:<pose>` | Pose names: `front`, `3/4-right`, `right`, `left`, `3/4-left`, `back`, `face-closeup`, `hands`, `approved`. One flag per identity; up to 3 **different** brand models per call. |
 | A photo | `--reference-image <url\|path>` | Repeatable, up to 8. Local paths auto-upload. |
 | A previous sheet | `--reference-image <resultUrl>` | For revisions: keeps the character, change one thing. |
 | Text only | none | Original character built entirely from the slots. |
@@ -168,26 +172,35 @@ Brand-model rules (checked against CLI 0.21.0):
 - **One flag per identity.** Repeating the same uuid with different poses is rejected
   (`Duplicate brand model ID`). The views of a turnaround come from the layout clause,
   not from extra flags — pass the identity once.
-- **Poses only on the user's own trained models.** `brand-model list` returns
-  `data[].source`; models with `source: "system"` (the shared catalog) reject any pose
-  (`E_BRAND_MODEL_POSE_NOT_FOUND`). For those, pass the bare uuid.
-- For the user's own models, pass `:front` for every layout (the clearest face for the
-  model to anchor on); omit the pose if that returns `E_BRAND_MODEL_POSE_NOT_FOUND`.
+- **Default to the bare uuid** for every layout — the server then uses the model's
+  primary image. A pose works only if that specific model has an image of that angle
+  stored, and there is no way to list them; many user-trained models have none, not even
+  `front`. Models with `source: "system"` (the shared catalog, from `brand-model list`
+  `data[].source`) reject every pose.
+- **A pose only on request.** When the user asks for a specific angle, check it first
+  with the free `clickraft generate estimate --json` using the same flags. If that
+  returns `E_BRAND_MODEL_POSE_NOT_FOUND`, drop the pose and use the bare uuid.
 
 Garment or accessory from the catalog: add `--product <uuid>` and name it in the
 wardrobe slot ("wearing the referenced jacket").
 
 ## Invocation
 
-Mode B, one sheet:
+Mode B, one sheet — submit with `--no-wait`, then wait on the job (a blocking create can
+outlive the agent shell and orphan the job):
 
 ```bash
-clickraft generate create --json \
+clickraft generate create --json --no-wait \
   --model-slug nano-banana-2 --resolution 2K --aspect-ratio 16:9 \
-  [--brand-model <uuid>:front] [--reference-image <url|path>] \
-  --prompt "<assembled sheet prompt>" \
-  --output ./clickraft-output/
+  [--brand-model <uuid>] [--reference-image <url|path>] \
+  --prompt "<assembled sheet prompt>"
+clickraft generate wait <data.jobId> --json --output ./clickraft-output/
 ```
+
+Run the wait as its own command, not after `&&`: a timed-out wait exits non-zero. Budget
+about 2 minutes per sheet. Jobs can sit `queued` for several minutes and an account's
+jobs may run one after another, so several timed-out waits in a row are normal — wait
+again on the same jobId.
 
 Aspect ratio comes from the layout (`references/layouts.md`): multi-panel sheets 16:9
 (3:2 also fine), a single portrait 2:3 or 3:4.
@@ -247,8 +260,8 @@ Tell the user they can keep the sheet link to reuse the character later.
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (default 1000) and retry once. |
 | `E_MODEL_NOT_FOUND` | Re-list with `clickraft models list --category image --json` and pick another slug. |
 | `E_GEN_CONTENT_REFUSAL` | The model refused. Check for a real-person or franchise likeness, or revealing wardrobe; rephrase and ask the user before resubmitting. |
-
-| `E_BRAND_MODEL_POSE_NOT_FOUND` | Drop the `:pose` suffix and resubmit (system brand models take no pose). |
+| `E_BRAND_MODEL_POSE_NOT_FOUND` | That model has no image of that angle (system models take no pose at all). Drop the `:pose` suffix and use the bare uuid. |
+| `E_TIMEOUT` (exit 6) | Not a failure — the job keeps running. Run `generate wait <same jobId>` again; never re-create the job. |
 
 A rejected flag combination (duplicate or too many brand models, unsupported aspect
 ratio or resolution) comes back as `E_INPUT_INVALID_FORMAT`: re-read the model's
@@ -259,5 +272,5 @@ constraints and adjust.
 Requires `@clickraft/cli` `>= 0.21.0` (`--output`, `generate estimate`, brand-model
 pose suffixes).
 
-Shell note: in zsh, write `"${UUID}:front"`, not `$UUID:front` — zsh reads `:f…` after a
+Shell note: when you do pass a pose in zsh, write `"${UUID}:front"`, not `$UUID:front` — zsh reads `:f…` after a
 bare variable as a modifier and mangles the uuid.
