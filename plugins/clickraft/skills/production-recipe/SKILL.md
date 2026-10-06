@@ -5,18 +5,18 @@ description: |
   Build a production Recipe with the Clickraft CLI: a reusable catalog-shoot style
   (product and model slots, the photos to take, styling, scene) that Clickraft applies to
   many products. Reads the schema and the catalog, writes the Recipe as JSON, creates a
-  draft, has Clickraft plan the photos, and hands the user the link where they approve
-  the images and save it.
+  draft, has Clickraft plan the photos, makes the sample images with the user's consent
+  (photo 1 first), and hands the user the link where they approve the images and save it.
 
   Use when: "build me a Recipe", "create a Recipe in this style", "a shoot style for my
   catalog", "product-page photos for every product", "front, back and detail shots",
   "PDP style", "make a Recipe like my summer one", "change my Recipe draft", "plan the
-  photos". Use it whenever the user wants one repeatable look for many products, even if
-  they never say "Recipe".
+  photos", "make the sample images", "redo the second photo". Use it whenever the user
+  wants one repeatable look for many products, even if they never say "Recipe".
 
   NOT for: a single one-off image (use `generate-image`), a workflow graph (use
-  `clickraft-workflow-authoring`), or making the Recipe's images and running a
-  production — those happen in Clickraft after the hand-over.
+  `clickraft-workflow-authoring`), or running a production with a saved Recipe — that
+  happens in Clickraft after the hand-over.
 argument-hint: "[style brief] [--draft <uuid>]"
 allowed-tools: Bash(clickraft:*), Write, Read
 ---
@@ -29,10 +29,11 @@ Once saved in Clickraft, it is applied to many products in a production.
 
 The division of work is fixed:
 
-- **You** write the Recipe as JSON, create a **draft**, and have Clickraft plan its photos.
+- **You** write the Recipe as JSON, create a **draft**, have Clickraft plan its photos,
+  and, when the user agrees to the price, have Clickraft make its sample images.
 - **The user** opens the draft's link in Clickraft, approves the sample images, saves the
-  Recipe, and continues to Products there. No command approves images or saves a Recipe,
-  and none makes images or runs a production. Do not promise any of that from the CLI.
+  Recipe, and continues to Products there. No command approves images, saves a Recipe or
+  runs a production. Do not promise any of that from the CLI.
 
 So every run of this skill ends with the draft's `webUrl` in your reply.
 
@@ -61,10 +62,12 @@ So every run of this skill ends with the draft's `webUrl` in your reply.
    take a few minutes.
    Give the command a long timeout (up to 5 minutes) or run it in the background; do not
    let a short tool timeout kill it.
-7. **Report and hand over**: a short summary of the Recipe (photos, styling, scene), each
+7. **Offer the sample images** (credits; see "Sample images"). Make them only if the user
+   agrees to the price; otherwise hand over, and they are made in Clickraft.
+8. **Report and hand over**: a short summary of the Recipe (photos, styling, scene), each
    planned photo's framing from `data.plan.shots[]`, the example product and model you
-   bound, then the link, in the user's language: "Open it in Clickraft to approve the
-   images and save the Recipe: `<webUrl>`".
+   bound, the images if you made them, then the link, in the user's language: "Open it in
+   Clickraft to approve the images and save the Recipe: `<webUrl>`".
 
 ## Bindings: the example the images are made with
 
@@ -112,14 +115,53 @@ To redo one photo's plan from the user's feedback:
 `clickraft recipe draft plan <id> --revision <n> --shot <key> --feedback "<what to change>" --json`.
 Re-plan only when the user asks for a change. Do not re-plan in a loop to polish.
 
+## Sample images: credits, only on the user's word
+
+The images cost **credits**. Every start carries the price the user agreed to, so ask
+first, every time. Photo 1 comes first because every other photo copies its look.
+
+1. **Price photo 1**: `clickraft recipe draft images estimate <id> --json`. Tell the user
+   `data.credits` (photo 1) and `data.rest.credits` (the other photos, an estimate quoted
+   exactly once photo 1 is accepted). If `data.ready` is false, `data.error` says why.
+   If `data.affordable` is false, say why (`data.blockedReason`) and stop.
+2. **On the user's word**, start it with exactly what the estimate returned:
+   `clickraft recipe draft images start <id> --fingerprint <data.fingerprint> --max-credits <data.credits> --idempotency-key <key> --json`.
+   Never raise `--max-credits` above the estimate.
+3. **Wait and look**: `clickraft recipe draft images wait <id> --output ./recipe-images --json`.
+   It waits up to 10 minutes by default: give the command a long timeout or run it in the
+   background. Open the saved files (`data.saved[].path`) with Read and look at photo 1.
+4. **Ask the user to accept photo 1**, describing it in a line or two. If they want it
+   changed, photo 1 is redone in Clickraft (give the link); the CLI cannot redo photo 1,
+   because every other photo would be made again.
+5. **The rest**: estimate again (now the exact price of the other photos), tell the user,
+   and on their word start with the new fingerprint. Starting the rest records that the
+   user accepted photo 1. Clickraft makes them on its own, without a browser tab: `wait`
+   again with `--output` and look at them.
+6. **Redo one photo** (not photo 1) only when the user asks:
+   `clickraft recipe draft images estimate <id> --redo <key> --json`, tell them the price
+   (credits, plus Utility Units to rewrite its plan), then on their word
+   `clickraft recipe draft images redo <id> --shot <key> --feedback "<their words>" --fingerprint <fp> --max-credits <n> --idempotency-key <key> --json`.
+   Do not redo to polish on your own.
+
+Good to know:
+
+- A failed image is refunded. The next estimate offers it as `retry`. In the rest of the
+  set, Clickraft retries a failed photo once by itself, then pauses with a reason
+  (`data.set.reason`).
+- `clickraft recipe draft images pause <id>` stops a running set; queued photos finish.
+- A back, detail or three-quarter photo needs a verified photo of that side of the hero
+  product. If the estimate says one is missing, tell the user: they add and scan it in
+  Clickraft, or keep only front photos.
+
 ## Idempotency keys: retry without doing it twice
 
-Pass `--idempotency-key` on create, update and plan, with one fresh value per intended
+Pass `--idempotency-key` on create, update, plan, `images start` and `images redo`,
+with one fresh value per intended
 change (for example `recipe-<slug>-create-1`). If the command fails without an answer
 (timeout, network error, or a message saying the request may still have completed),
 **re-run it with the same key**: you get the original result instead of a second draft or
-a second plan. Use a new key only for a new, different change. The CLI never retries a
-plan on its own; that decision is yours.
+a second plan, or a second charge. Use a new key only for a new, different change. The
+CLI never retries a plan, a start or a redo on its own; that decision is yours.
 
 ## UX rules
 
@@ -131,7 +173,8 @@ plan on its own; that decision is yours.
 3. Describe looks in visible terms: light, background, pose, framing, crop. Do not name
    brands the user does not sell.
 4. Default to acting. A draft is free: create it, show it, adjust it. Ask only for a
-   genuinely missing choice (see "Bindings").
+   genuinely missing choice (see "Bindings"). Images are not free: never start or redo
+   one without the user agreeing to its price.
 
 ## Response envelope
 
@@ -143,9 +186,16 @@ Draft commands (`create`, `get`, `update`, `plan`) return the draft in `data`:
 | `recipe`, `bindings`, `runChoices` | What the draft holds now |
 | `plan.status` | `none`, `current` or `stale` |
 | `plan.shots[]` | `key`, `view`, `summary`, `framing` per planned photo; `summary` and `framing` may be `null`. The prompts stay on the server. |
-| `images.status`, `images.frames[]` | Sample images, made in Clickraft after the hand-over |
+| `images.status`, `images.frames[]` | Sample images' progress (`images wait` gives the detail) |
 | `openQuestions[]` | Questions from a draft started in the browser |
 | `webUrl` | The link the user opens to approve and save |
+
+`images estimate` returns `data.stage`, `ready`, `error`, `credits`, `fingerprint`,
+`frames[]` (`shotKey`, `action`: `make`/`retry`/`keep`/`redo`, `credits`), `rest`,
+`balance`, `affordable`, `blockedReason`. `images start`, `wait`, `redo` and `pause`
+return the images: `data.stage` (`unplanned`, `anchor`, `anchor-running`, `set`,
+`set-running`, `complete`), `shots[]` (`key`, `status`, `approved`, `imageUrl`,
+`error`), `set` (`status`, `reason`) and `webUrl`; `wait --output` adds `saved[]`.
 
 `recipe list` returns `data.items[]` (`id`, `name`, `version`, `shots[]`).
 `recipe get` adds `recipe`, `exampleBindings`, `webUrl` (continue to Products with it)
@@ -160,8 +210,10 @@ the user saves it.
 | `E_RECIPE_INVALID` | Valid JSON that does not fit this organization (unknown facet or value, a product or model not in the catalog, a slot rule, or planning without a bound hero and model). The message names the rule. Fix it from `recipe schema`. |
 | `E_RECIPE_DRAFT_CONFLICT` | The draft changed since you read it. Get it again and re-apply (see above). |
 | `E_IDEMPOTENCY_IN_PROGRESS` | The same request is still running (often a plan). Wait a minute, then `recipe draft get` (`plan.status` becomes `current`) or re-run with the same key. |
+| `E_RECIPE_QUOTE_CHANGED` | The images or the price changed since the estimate (a photo finished, the plan changed). Nothing was charged. Estimate again, tell the user the new price, and start only on their word. |
+| `E_INSUFFICIENT_CREDITS` | Not enough credits (`error.details.required`, `available`). Tell the user. Do not retry. |
 | `E_PLAN_FEATURE_LOCKED` | The account's subscription lacks API access, or its Utility-Unit allowance for planning is used up. Tell the user. Do not retry. |
-| `E_AUTH_TOKEN_SCOPE_INSUFFICIENT` | The token predates the Recipe scopes. Tell the user to run `clickraft login --force-reauth`. |
+| `E_AUTH_TOKEN_SCOPE_INSUFFICIENT` | The token lacks a scope the message names (`recipes:*`, or `generations:write` for images). Tell the user to run `clickraft login --force-reauth`. |
 | `E_NOT_FOUND` "Recipes are not enabled on this deployment yet" | The feature is off on this server. Tell the user and stop. |
 | `E_NOT_FOUND` otherwise | Wrong id. Drafts and Recipes are visible only to the user who created them. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` and retry once with the same key. |
@@ -174,3 +226,7 @@ Needs a `@clickraft/cli` release that ships the `recipe` commands (after 0.17.0)
 with `clickraft recipe --help`. If the CLI answers `Unknown command`, tell the user to
 update it (`npm install -g @clickraft/cli@latest`), then `clickraft login --force-reauth`
 so the token carries the `recipes:read` and `recipes:write` scopes.
+
+The sample images need `@clickraft/cli` 0.19.0 or later: check with
+`clickraft recipe draft images --help`. On an older CLI, skip step 7 and hand over; the
+user makes the images in Clickraft.

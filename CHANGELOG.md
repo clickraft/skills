@@ -2,6 +2,15 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- `production-recipe` — makes the Recipe's sample images with `clickraft recipe draft
+  images` (CLI 0.19.0 or later), always on the user's word to a quoted price. Photo 1
+  comes first, and the rest of the set follows once the user accepts it, made by
+  Clickraft without a browser tab. The agent can also redo one photo (not photo 1) from
+  the user's feedback. On an older CLI the skill hands over as before.
+
 ## [0.5.1] — 2026-10-05
 
 ### Added
