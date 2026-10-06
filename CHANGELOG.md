@@ -2,7 +2,7 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.6.0] — 2026-10-06
 
 ### Added
 - `production-recipe` — makes the Recipe's sample images with `clickraft recipe draft
@@ -10,6 +10,11 @@ All notable changes to Clickraft Skills are documented here. Format based on [Ke
   comes first, and the rest of the set follows once the user accepts it, made by
   Clickraft without a browser tab. The agent can also redo one photo (not photo 1) from
   the user's feedback. On an older CLI the skill hands over as before.
+
+### Changed
+- All manifests and VERSION bumped to `0.6.0`.
+- `compatibility.json` `skills_version` set to `0.6.0`. `min_cli_version` is unchanged.
+  The images steps need CLI 0.19.0, and the skill says how to tell when the CLI is older.
 
 ## [0.5.1] — 2026-10-05
 
