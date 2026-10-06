@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: ugc-video
 description: |
   Produce a creator-style (UGC) short video with the Clickraft CLI: one continuous
@@ -162,8 +162,14 @@ clickraft generate wait <jobId> --json --timeout 100 --output ./clickraft-output
 ```
 
 - A completed job's `data.resultUrl` is a valid `--reference-image` / `--start-frame`.
-- One wait per Bash call (calls die near 2 minutes). A wait that times out is not a
-  failure: wait again on the SAME jobId. Never resubmit a pending job.
+- One wait per Bash call (calls die near 2 minutes), never chained with `&&`. A wait
+  that times out (`E_TIMEOUT`, exit code 6) is not a failure: wait again on the SAME
+  jobId. Never resubmit a pending job.
+- A job can sit in `queued` (`startedAt` null) for several minutes, and an
+  organisation's jobs may run one after another rather than in parallel, so several
+  timed-out waits in a row are normal. Budget about 2 minutes per image stage and 3–5
+  minutes for the clip once it starts, plus queue time; tell the user the run takes a
+  while up front.
 - Image stages run in order (creator → raw board → cleanup); each needs the previous
   result. Retry a technical failure once; a bare failure with no reason is "unknown" —
   check with `generate get <jobId> --json` before resubmitting.
@@ -175,7 +181,7 @@ clickraft generate wait <jobId> --json --timeout 100 --output ./clickraft-output
 Open every saved image (creator, raw board, cleaned board) with Read before using it —
 see the inspection list in [references/board.md](references/board.md). For the clip you
 cannot play video: confirm completion and the saved file, open `data.thumbnailUrl` if
-returned, and say that speech, lip-sync and motion were not frame-checked. If the user
+returned (it is often null — never depend on it), and say that speech, lip-sync and motion were not frame-checked. If the user
 reports a defect, redo only that stage.
 
 Deliver: saved path and result URL of the clip, its length, the exact spoken script
@@ -213,6 +219,7 @@ the user to join them in order.
 |---|---|
 | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. Do not retry. |
 | `E_INSUFFICIENT_CREDITS` | Stop. Say which stages finished and what the rest needs; link to billing. Do not retry. |
+| `E_TIMEOUT` (exit 6, from `generate wait`) | Not a failure — the job keeps running. Run `generate wait <same jobId>` again; never re-create the job. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (default 1000) and retry that call once. |
 | `E_MODEL_NOT_FOUND` | Re-check `clickraft models list --json`. If a locked model is gone, stop and tell the user; do not substitute. |
 | `E_GEN_CONTENT_REFUSAL` | That stage was refused for safety. Stop the dependent path; do not rephrase around the safety gate or drop references. Tell the user. |

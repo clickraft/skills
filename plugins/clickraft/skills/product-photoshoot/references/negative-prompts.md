@@ -15,6 +15,7 @@ no overcooked HDR, no halos, no oversharpening,
 no flat fluorescent light, no harsh on-camera flash (unless the look calls for it),
 no stock-photo posing, no cliché layouts,
 no unrelated logos, no watermarks, no signatures,
+no visible light stands, softboxes, reflectors, umbrellas or studio equipment in frame,
 no artificial sheen on skin or hair, no doll-like faces, no airbrushing,
 no flat solid bands, no empty rectangles, no dead gradient patches that do not belong
 to the scene.

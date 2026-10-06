@@ -3,11 +3,16 @@
 Vague words give generic images. Every prompt names the light, the lens and the surface
 in the terms a commercial photographer would use. Pick from the lists below.
 
+**Describe light by its effect, not its equipment.** The model draws what it is told:
+"a large diffused softbox above the lens" puts a softbox in the frame. Write the result
+on the subject — "broad soft light from above-front, gentle wraparound shadow" — and
+translate any gear named in a mode file's lighting notes the same way.
+
 ## Light — direction (always state one)
 
 - key 45° camera-left / 45° camera-right — the classic three-quarter key
 - frontal, flat — even e-commerce and beauty fill
-- overhead beauty dish — top-down sculpted beauty light
+- overhead sculpted — top-down beauty light with defined shadows
 - three-quarter back rim — separates the subject from the backdrop
 - low side raking — reveals texture and grain
 - butterfly from above the lens — glamour light with a small shadow under the nose or cap
@@ -16,11 +21,11 @@ in the terms a commercial photographer would use. Pick from the lists below.
 
 ## Light — quality (always state one)
 
-- large diffused softbox — broad, wrapping, gentle
-- bare hard strobe — crisp shadow edges
-- flagged / gobo-shaped — light cut into a controlled shape
-- gridded spot — tight pool of light
-- bounced fill — soft secondary from a card or reflector
+- broad diffused — wrapping, gentle, large-source softness
+- hard, crisp — sharp shadow edges from a small bright source
+- shaped — light cut into a controlled shape or pattern
+- tight pool — a narrow spot of light, quick falloff around it
+- soft lifted fill — a gentle secondary that opens the shadows
 - open skylight — even daylight with no direct sun
 - dappled through leaves — broken natural pattern
 - motivated practical — a lamp, candle or screen visible in the scene

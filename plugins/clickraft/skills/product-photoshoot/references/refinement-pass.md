@@ -32,6 +32,7 @@ the prompt is not evidence. Do not claim fine print is verified from a reduced v
 | Artificial sheen | That too-smooth rendered glow |
 | Half restyle | Original look still showing through (restyle) |
 | Flat band | Empty solid strip or dead gradient, usually from an overlay request |
+| Stray object | Studio gear (softbox, stand, reflector) or an unasked prop in frame |
 
 Pick one. If two are equal, pick the one the user would notice first.
 
@@ -67,6 +68,9 @@ Fix language, in your own words per case:
   light}} fully committed, no trace of the old styling.
 - **Flat band** — replace the empty {{top / bottom / side}} strip by continuing the real
   environment — sky, defocused room, surface — so the frame reads as one scene.
+- **Stray object** — remove the {{softbox / light stand / prop}} and continue the
+  surrounding backdrop and surface seamlessly where it stood; keep the light on the
+  product as it is.
 
 ## Step 4 — submit
 

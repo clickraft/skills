@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: production-recipe
 description: |
   Build a production Recipe with the Clickraft CLI: a reusable catalog-shoot style

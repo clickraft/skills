@@ -20,10 +20,11 @@ listing, Shopify main image.
 
 | Preset | Keys |
 |---|---|
-| clean-studio, minimal-design | `graphic-color-block`, `surreal-levitation`, `playful-pop-still-life` |
-| dramatic-studio, luxury-editorial | `classical-still-life`, `sculpted-dramatic-light`, `high-concept-premium` |
-| etsy-handmade | `warm-editorial-table`, `handcrafted-moody-warm`, `sunlit-airy-lifestyle` |
-| vibrant-color | `playful-pop-still-life`, `soft-surreal-color`, `handmade-craft-conceptual` |
+| clean-studio | `clean-ecommerce`, `graphic-color-block` |
+| minimal-design | `graphic-color-block`, `clean-ecommerce` |
+| dramatic-studio, luxury-editorial | `sculpted-dramatic-light`, `classical-still-life` |
+| etsy-handmade | `warm-editorial-table`, `sunlit-airy-lifestyle` |
+| vibrant-color | `playful-pop-still-life`, `graphic-color-block` |
 | floating-product | `surreal-levitation`, `high-concept-premium`, `graphic-color-block` |
 | ingredient-flatlay | `graphic-color-block`, `warm-editorial-table`, `color-sorted-flatlay` |
 
@@ -33,13 +34,17 @@ listing, Shopify main image.
 [SUBJECT]
 Hero packshot of {{exact product: form, size cues, packaging}}, {{material and finish}},
 {{label or logo visible, if any}}.
+{{for a set: exact piece count and arrangement — "the teapot with exactly four identical
+cups in a row in front of it"}}; {{small structural parts as in the reference, with
+material — "clear glass strainer inside, glass handle joins"}}.
 
 [COMPOSITION]
 {{camera angle — eye level / slight high three-quarter / straight-on / top-down}},
 {{framing}}, product placed {{on a third / centered for catalog}}, {{how much air around it}}.
 
 [LIGHTING]
-{{direction + quality from photography-vocabulary.md}}, {{Kelvin}}, {{shadow behaviour}}.
+{{direction + quality from photography-vocabulary.md, as the effect on the product — no
+lamps, softboxes or stands named}}, {{Kelvin}}, {{shadow behaviour}}.
 
 [LENS & CAMERA]
 {{focal length}}, {{aperture}}, {{depth of field}}, focus locked on {{label / cap / front face}}.
@@ -78,6 +83,10 @@ Render at 2K resolution.
 ## Quality gates
 
 - [ ] Product recognizable and faithful to the reference
+- [ ] Same number of pieces as the reference, in the stated arrangement
+- [ ] Small structural details (strainer, gasket, handle joins, caps) match the
+      reference in shape and material
+- [ ] No light stands, softboxes, reflectors or other studio gear in frame
 - [ ] Light has a clear direction and quality, not flat
 - [ ] Shadows physically plausible
 - [ ] Label and logo sharp, not warped

@@ -1,5 +1,5 @@
 ---
-version: 0.7.0
+version: 0.7.1
 name: product-image-presets
 description: |
   One-shot product image presets with the Clickraft CLI. Each of 45 presets (hero shot,
@@ -40,6 +40,9 @@ clickraft generate create --json --no-wait --model-slug gpt-image-2.5-sunburst \
   --prompt "<assembled master prompt>"
 clickraft generate wait <jobId> --json --timeout 90 --output ./clickraft-output/
 ```
+
+Run `generate wait` as its own command, never chained with `&&`: a timeout exits non-zero.
+A timeout is not a failure (see `E_TIMEOUT` in "Error handling").
 
 Open `data.savedPath` (Read) and look at it before replying. Deliver the saved path, the
 `data.resultUrl` and one line describing what the image shows.
@@ -159,7 +162,10 @@ one reference per product the user supplies):
 - **Catalog product** ("my parfum", a product name): `clickraft product list --json
   --search "<name>"`, use `data.products[].id` as `--product <uuid>` (append
   `:<imageId>` from `images[]` to pin a specific photo, default the `isPrimary` one). One
-  match → use it. Several → ask which, listing titles.
+  match → use it. Several → if one's primary image matches the photo the user showed,
+  use it; otherwise ask which. Search often returns two products with the same title, so
+  a title list cannot settle it: show each candidate's primary image (or its image count
+  and the last characters of its id) and ask.
 - **An image from earlier in this conversation** (a previous `data.resultUrl` or a file
   the user pointed at): reuse it, do not ask again.
 - **No photo at all**: ask for one (file path, URL, or catalog product name). This is the
@@ -235,7 +241,11 @@ clickraft generate create --json --no-wait \
 clickraft generate wait <jobId> --json --timeout 90 --output ./clickraft-output/
 ```
 
-If `generate wait` times out, run it again on the same jobId. When it completes, open the
+If `generate wait` times out (`E_TIMEOUT`, exit code 6), the job is still running: run
+`generate wait` again on the same jobId, never re-create it. Jobs can sit in `queued`
+for several minutes before they start, and an account's jobs may run one after another,
+so several timed-out waits in a row are normal. Budget about 2 minutes per image. When it
+completes, open the
 saved file and check it: same product, label intact, no stray words, preset effect
 visible. If the label is garbled or the product changed shape, regenerate once with the
 same flags and say so in one line; do not change the recipe.
@@ -245,7 +255,7 @@ same flags and say so in one line; do not change the recipe.
 Only in these cases, one question at a time:
 
 - No product photo is available.
-- A catalog search returns several products.
+- A catalog search returns several products and none matches a photo the user showed.
 - Two presets fit equally (labeled options with both names).
 - `myth-fact` or `saveable-tip` with no user-given or printed fact.
 
@@ -265,6 +275,7 @@ the estimate and quote `data.creditCost`. Prices can change; the estimate is the
 |---|---|
 | `E_AUTH_TOKEN_MISSING` / `E_AUTH_TOKEN_EXPIRED` | Tell the user to run `clickraft login`. Do not retry. |
 | `E_INSUFFICIENT_CREDITS` | Tell the user they are out of credits and point to billing. Do not retry, do not downgrade. |
+| `E_TIMEOUT` (exit 6) | Not a failure: the job keeps running. Run `generate wait <same jobId>` again; never re-create the job. |
 | `E_RATE_LIMITED` | Wait `error.retry_after_ms` (default 1000) and retry once. |
 | `E_MODEL_NOT_FOUND` | Run `clickraft models list --json --category image`. If `gpt-image-2.5-sunburst` is gone, use `gpt-image-2.5-flare` with the same flags (the only allowed swap). If neither exists, report it. |
 | `E_GEN_CONTENT_REFUSAL` | Tell the user the image was refused and ask them to try another photo or preset. |

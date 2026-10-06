@@ -65,7 +65,7 @@ eye area with defined lashes}}. Partial and supporting, never the subject.
 {{applying / holding / pouring / touching / tasting}}, natural and unhurried, ritual-like.
 
 [LIGHTING]
-{{the preset's setup above}}. Clean highlight on the product. Real skin sheen, no plastic.
+{{the preset's setup above, written as its effect — no gear named}}. Clean highlight on the product. Real skin sheen, no plastic.
 
 [LENS & CAMERA]
 {{100mm macro / 85mm}}, {{f/2.8–f/4}}, shallow focus on the product, skin softly defocused.

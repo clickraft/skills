@@ -61,12 +61,12 @@ Use either one alone, or both together ("a Christmas version in cottage style").
 
 | Aesthetic | Keys |
 |---|---|
-| clean-girl, minimal, quiet-luxury | `graphic-color-block`, `surreal-levitation`, `playful-pop-still-life` |
+| clean-girl, minimal, quiet-luxury | `clean-ecommerce`, `graphic-color-block`, `modern-minimal-beauty` |
 | cottagecore, coastal-grandmother, japandi | `handcrafted-moody-warm`, `editorial-interiors`, `nordic-soft-daylight` |
 | y2k, futurist, pastel-dream | `pastel-nostalgic`, `surreal-conceptual`, `soft-surreal-color` |
 | dark-academia, gothic-romance | `whimsical-fantasy`, `cinematic-staged-narrative`, `narrative-portrait` |
 | maximalist, bohemian, art-deco | `whimsical-fantasy`, `glossy-high-fashion`, `dramatic-editorial` |
-| scandinavian, brutalist, mid-century-modern | `graphic-color-block`, `editorial-interiors`, `surreal-levitation` |
+| scandinavian, brutalist, mid-century-modern | `graphic-color-block`, `editorial-interiors`, `nordic-soft-daylight` |
 | retro-90s | `pastel-nostalgic`, `abstract-editorial`, `raw-flash-retro` |
 
 Season only: pick the key set of the closest aesthetic (e.g. christmas → cottagecore set,

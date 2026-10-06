@@ -13,18 +13,25 @@ and keep the layout clause and consistency anchor unchanged.
 
 The signature look: a real person photographed in a studio, with nothing smoothed away.
 
-**Realism module (mandatory for this preset):**
+**Realism module (mandatory for this preset; this is the canonical text — the template
+in `prompt-skeleton.md` uses it verbatim):**
 
 > true-to-life skin with fine pores, faint lines and small natural asymmetries, uneven
-> texture where real skin has it, everyday makeup that is visible and blended slightly
-> unevenly instead of a flawless base, a light natural flush on the cheeks, a soft
-> natural sheen only — never glossy or dewy, no retouching, no smoothing, no beauty
-> filter, no airbrushed or AI-polished finish, no shine spots, glare or blown highlights
-> on the skin, a matte-to-natural complexion
+> texture where real skin has it, a light natural flush on the cheeks, a soft natural
+> sheen only — never glossy or dewy, no retouching, no smoothing, no beauty filter, no
+> airbrushed or AI-polished finish, no shine spots, glare or blown highlights on the
+> skin, a matte-to-natural complexion
+
+If the character wears makeup, insert after "where real skin has it": "everyday makeup
+that is visible and blended slightly unevenly instead of a flawless base". Leave it out
+for a bare-faced character.
 
 Optional imperfection anchors (pick one or two, keep them identical across revisions):
 a scattering of faint freckles, a small mole on the neck or collarbone, a tiny scar
-through one eyebrow, slightly chapped lips.
+through one eyebrow, slightly chapped lips. When an anchor has a side, name it from the
+character's own point of view and spell out the mirror — "a small mole on the
+character's own left collarbone (the viewer's right)". A bare "left" or "right" renders
+on the viewer's side.
 
 **Eyes (slot 5 add-on):** soft, small catchlights, no large specular reflection in the
 iris, eye color slightly muted rather than glowing.
