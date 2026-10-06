@@ -2,6 +2,36 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] — 2026-10-06
+
+### Added
+- `product-photoshoot` — finished product stills in ten modes (product shot, lifestyle
+  scene, close-up with a person, Pinterest pin, hero banner, social carousel, ad creative
+  pack, virtual model try-on, conceptual product, restyle). Silent defaults on "just do
+  it", at most three bundled questions, a composed `[AVOID]` block, one product identity
+  across a set, and a refinement budget of three generations per image. Locked to
+  `nano-banana-pro` at 2K.
+- `product-image-presets` — 45 named one-shot product looks run as locked recipes on
+  `gpt-image-2.5-sunburst`; on-image facts come only from the user, the catalog or the pack.
+- `product-video-presets` — 18 named product motions. A prepared start frame (backdrop
+  sampled from the product) feeds `seedance-2-standard-i2v`; the price is quoted and the
+  user says go before the video runs.
+- `thumbnail-generation` — thumbnails and video covers: 16 concept frameworks, a character
+  gate, identity lock, emotion × take variants, split frames, surgical edits, 3D logo.
+- `character-sheet` — consistent multi-view character sheets in five styles.
+- `ad-multiplier` — independently edited versions of one 4–15 s source video with
+  `seedance-2.5-r2v --task editing`.
+- `ugc-video` — one creator-style clip up to 15 s with native audio in six formats, built
+  from a cleaned board image.
+
+### Changed
+- `generate-image` — default model is now `gpt-image-2.5-sunburst`; `nano-banana-2` for
+  brand-model identity, `nano-banana-pro` for finished commercial images, `gpt-image-2` for
+  exact text. Documents that shared brand models reject a pose suffix, and points to the new
+  skills in its boundaries.
+- All manifests and VERSION bumped to `0.7.0`; `compatibility.json` `skills_version` set to
+  `0.7.0`. The new skills need CLI 0.21.0 and say so.
+
 ## [0.6.0] — 2026-10-06
 
 ### Added
