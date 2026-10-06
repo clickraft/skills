@@ -1,5 +1,5 @@
 ---
-version: 0.7.1
+version: 0.8.0
 name: thumbnail-generation
 description: |
   Produce click-worthy YouTube and Instagram thumbnails and video covers with Clickraft:

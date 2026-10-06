@@ -1,5 +1,5 @@
 ---
-version: 0.7.1
+version: 0.8.0
 name: product-video-presets
 description: |
   One-shot product videos from a single product photo with the Clickraft CLI. 18 named

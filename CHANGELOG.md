@@ -2,6 +2,26 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] — 2026-10-06
+
+### Added
+- **One source, two flavours.** Every skill is now written once in `src/skills/` and rendered by
+  `scripts/build-skills.mjs` (no dependencies) into the CLI flavour in `plugins/clickraft/skills/`
+  (unchanged location and content) and a new MCP flavour in `mcp/skills/` + `mcp/bundle.json`.
+  Text for one flavour only is wrapped in `<cli>…</cli>` or `<mcp>…</mcp>`, so modes, prompt
+  templates and quality gates are shared and cannot drift.
+- MCP flavour of `generate-image`, `product-photoshoot`, `product-image-presets`,
+  `product-video-presets`, `thumbnail-generation`, `character-sheet`, `ad-multiplier` and
+  `ugc-video`, written for chat agents that only have the Clickraft MCP tools (`generate_create`,
+  `generate_batch`, `generate_wait`, `upload_widget`, previews and the generation widget). The
+  Clickraft MCP server vendors `mcp/bundle.json` from this tag and serves it through
+  `skill_list` / `skill_get` / `skill_file`.
+- CI check 0: the generated flavours must match `src/skills`.
+
+### Changed
+- The CLI flavour of every skill is byte-identical to 0.7.1 apart from the version line.
+- All manifests and VERSION bumped to `0.8.0`.
+
 ## [0.7.1] — 2026-10-06
 
 Fixes from live runs of every image skill and one product video on staging.

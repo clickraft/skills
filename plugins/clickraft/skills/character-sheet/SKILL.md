@@ -1,5 +1,5 @@
 ---
-version: 0.7.1
+version: 0.8.0
 name: character-sheet
 description: |
   Build a consistent character sheet (model sheet, turnaround, expression sheet,
