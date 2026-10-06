@@ -2,6 +2,43 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.1] — 2026-10-06
+
+Fixes from live runs of every image skill and one product video on staging.
+
+### Changed
+- `generate-image` — the default model is `nano-banana-2` again (more photoreal in a
+  side-by-side test); `gpt-image-2.5-sunburst` is for precise edits and faithful
+  references. A plain request defaults to 1:1 without asking. An estimate runs only for 4K,
+  `nano-banana-pro` or quality above `high`. Fixed the `--resolution` and `--quality` flag notes.
+- All skills — submit with `--no-wait` and then `generate wait`. `E_TIMEOUT` (exit 6) means the
+  job is still running: wait again on the same job and never re-create it. Jobs can queue
+  for minutes and run one after another.
+- All skills — brand models default to the bare uuid. A pose works only if that model has an
+  image of that angle; check it first with the free `generate estimate`. Added
+  `face-closeup` and `hands` to the pose names.
+- Reference order is documented as the server applies it: brand models, then
+  `--reference-image`, then `--product`. Fixes the `@ImageN` numbering note in `ad-multiplier`.
+- Duplicate catalog titles are told apart by image, not by title.
+
+### Fixed
+- `product-photoshoot` — `clean-studio` and similar presets now map to a new
+  `clean-ecommerce` look. Light is described by its effect, so studio gear no longer
+  appears in frame. Added set piece-count slots and gates, a structural-detail gate and a
+  stray-object refinement row.
+- `product-image-presets` — on-image facts fall back to visible-attribute noun phrases, with no
+  function claims. Separate pieces are kept as in the photo. `hero-shot` no longer inherits a
+  top-down reference angle.
+- `thumbnail-generation` — native 4K size (5504×3072), a consistent block name, a placement
+  sentence for baked text, tweaks that keep baked text and re-check it, a `<style cue>` slot,
+  and a worst-case cost that includes re-renders.
+- `character-sheet` — makeup wording is conditional, sides are named from the character's own
+  point of view, brand colours are allowed while logos are kept out, and a broken error table
+  is repaired.
+- `product-video-presets` — the start frame is centred and fills 60–70% of the frame, with a
+  check before the video. Loose lids rotate with the product as one set. Confirmed live: 6 s,
+  a stage-1 image as `--start-frame`, and a silent clip.
+
 ## [0.7.0] — 2026-10-06
 
 ### Added
