@@ -1,5 +1,5 @@
 ---
-version: 0.8.0
+version: 0.8.1
 name: product-photoshoot
 description: |
   Finished product photography with Clickraft: packshots, lifestyle scenes,

@@ -1,5 +1,5 @@
 ---
-version: 0.8.0
+version: 0.8.1
 name: ad-multiplier
 description: |
   Turn one existing 4–15 second ad clip into several independently edited versions with

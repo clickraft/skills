@@ -1,5 +1,5 @@
 ---
-version: 0.8.0
+version: 0.8.1
 name: ugc-video
 description: |
   Produce a creator-style (UGC) short video with Clickraft: one continuous

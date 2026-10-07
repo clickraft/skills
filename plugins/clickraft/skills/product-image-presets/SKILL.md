@@ -1,5 +1,5 @@
 ---
-version: 0.8.0
+version: 0.8.1
 name: product-image-presets
 description: |
   One-shot product image presets with the Clickraft CLI. Each of 45 presets (hero shot,

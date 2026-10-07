@@ -2,6 +2,22 @@
 
 All notable changes to Clickraft Skills are documented here. Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versioning follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] — 2026-10-07
+
+### Fixed
+- **`production-recipe` writes directed Recipes.** The field guide told agents to leave out the
+  recipe's `direction`, and both worked examples were legacy Recipes that replay one pose. It now
+  explains direction (the concept, 1–4 pose families per on-model photo, energy, set pieces,
+  smiles), step 3 asks for a directed Recipe unless the user wants exact poses copied, and both
+  examples are directed Recipes that pass the server's validation. An optional smile is now an
+  option that is off by default, not part of a description.
+- **MCP flavour no longer points at a CLI-only skill.** `character-sheet`, `product-image-presets`
+  and `product-photoshoot` named `production-recipe`, which the MCP does not serve; they now name
+  the recipe_* tools. The CLI flavour keeps its pointer.
+
+### Changed
+- All manifests and VERSION bumped to `0.8.1`.
+
 ## [0.8.0] — 2026-10-06
 
 ### Added
