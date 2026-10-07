@@ -29,10 +29,32 @@ holds only the parts that change, and never `revision`.
 | `heroSlotKey` | The key of a **required** product slot. |
 | `modelSlotKey` | The character slot's key, or `null` for product-only Recipes. |
 | `shotDirections` | 1–12 photos (see below). |
-| `variationPolicy` | `close`, `subtle` (default) or `creative`: how far looks may differ. |
+| `variationPolicy` | `subtle` (default) or `creative` for a directed Recipe; `close` only with `direction.mode: "replay"`. |
+| `direction` | The concept of the set (see "Direction"). Write it on every new Recipe. |
+| `outfitStructures` | Leave out unless `vocabulary.products[].facetValues` carry the facet values that would pick a structure. |
 
-Leave out the recipe's `direction` and `outfitStructures`, and each photo's `direction`
-and `evidence`. They belong to Recipes built from references in Clickraft.
+Leave each photo's `evidence` out: it needs a reference image, which the CLI cannot attach.
+
+### Direction
+
+Clickraft makes every look of a production with a per-look director. In a **directed**
+Recipe (the default) you write the concept and the director invents each look's pose
+inside it, so a catalog grid stays consistent without every look being a copy. A Recipe
+without `direction` is a legacy one that copies the pose written in its descriptions.
+`data.rules` holds the full contract; in short:
+
+- `recipe.direction`: `mode` (`directed`; `replay` only when the user asks to copy exact
+  poses), `story`, `energy`, `expressions`, `gazes`, `setPieces` (studio items such as a
+  cube, at most 3, never forbidden by an exclusion, and visible in `scene`) and `smiles`
+  (`true` only when the user asks for smiles).
+- Every on-model photo gets a `direction`: `fixed` (what keeps it the same photo in every
+  look: crop, camera height, view), 1–4 pose `families` in visible terms, `vary` and
+  `avoid`. A family has `key`, `label`, `direction`, `energy` (`dynamic` for movement or
+  low poses, at most one per look; `still` otherwise), and optionally `requires` /
+  `favours` (hero product words), `fixes` (`hands`, `gaze`) and `needsSlotKey`.
+- Product-only photos get no `direction`.
+- Garment words (mini, linen, pleat) appear only in a family's `requires` and `favours`,
+  never in the recipe's prose: the bound products supply the garment.
 
 ### Slots
 
@@ -66,38 +88,45 @@ and `evidence`. They belong to Recipes built from references in Clickraft.
   flat-lay (`front`/`back`) or a macro (`detail`), with no person and no scene. For a
   detail photo, choose `on-model` when the setting is part of the look (a beach at
   sunset), and `product-only` for a clean studio macro.
-- `purpose`: why the photo exists, one line. `description`: the photo in visible terms
-  (framing, pose, light), up to 1500 chars.
+- `purpose`: why the photo exists, one line. `description`: the crop, then camera height,
+  angle and lens look, up to 1500 chars. In a directed Recipe it never states a pose,
+  hands, gaze or expression: the photo's `direction` covers those. Light and backdrop go
+  in `scene`, once for the whole set.
 - `referenceId` and `referenceImageIndex`: always `null` from the CLI.
 - Photo 1 anchors the rest: later on-model photos follow it unless `"followsAnchor": false`.
 
 ### Variation options
 
-A photo may offer up to 2 options with up to 3 choices each, picked per production:
+An optional wish ("may smile on some runs") is an option on that photo, never part of its
+description. A photo may offer up to 2 options with up to 3 choices each, picked per
+production:
 
 ```json
 "variationOptions": [
-  { "key": "hands", "label": "Hands", "defaultChoice": "pockets", "allowAuto": true,
+  { "key": "expression", "label": "Expression", "defaultChoice": "off", "allowAuto": true,
     "choices": [
-      { "key": "pockets", "label": "In pockets", "instruction": "Both hands in the trouser pockets" },
-      { "key": "relaxed", "label": "Relaxed", "instruction": "Arms loose at the sides" } ] } ]
+      { "key": "neutral", "label": "Neutral", "instruction": "A neutral, relaxed expression with the mouth closed" },
+      { "key": "smile", "label": "Soft smile", "instruction": "A soft, natural closed-mouth smile" } ] } ]
 ```
 
-`runChoices` pre-selects them for the sample images:
-`{ "front": { "hands": "relaxed" } }`. Skip both unless the user asks for options.
+`defaultChoice` is `off` (keep the base direction), `auto` (the per-look director picks;
+needs `allowAuto`) or a choice key. `runChoices` pre-selects choices for the sample images:
+`{ "front": { "expression": "smile" } }`. Skip both unless the user asks for options.
 
 ## Example 1: product-page shots on one model
 
 Front, back and a fabric macro. The shirt changes per product, the rest of the outfit is
-described in `styling`, and one model is used for the whole production.
+described in `styling`, and one model is used for the whole production. The front photo
+offers three pose families (one with movement, one on a studio cube the scene shows), the
+back two, and the macro none.
 
 ```json
 {
   "recipe": {
     "name": "Linen studio PDP",
     "intent": "Product-page photographs on one model, consistent across the catalog",
-    "styling": "The selected shirt worn simply, untucked, with plain light-grey trousers; no jewelry or props",
-    "scene": "Seamless warm-white studio backdrop, soft directional key light from the left",
+    "styling": "The selected shirt worn simply, untucked, with plain light-grey trousers; no jewelry",
+    "scene": "Seamless warm-white studio backdrop and floor with a plain white studio cube to one side, soft directional key light from the left",
     "exclusions": ["jewelry", "hats"],
     "aspectRatio": "3:4",
     "looksPerHero": 1,
@@ -110,18 +139,53 @@ described in `styling`, and one model is used for the whole production.
     "heroSlotKey": "hero",
     "modelSlotKey": "model",
     "variationPolicy": "subtle",
+    "direction": {
+      "mode": "directed",
+      "story": "A calm, modern product page: one model in a bright studio, relaxed and confident",
+      "energy": "Mostly still and relaxed, with a gentle step on some looks",
+      "expressions": ["neutral", "relaxed"],
+      "gazes": ["to camera", "slightly off camera"],
+      "setPieces": ["plain white studio cube"],
+      "smiles": false
+    },
     "shotDirections": [
       { "key": "front", "view": "front", "presentation": "on-model",
         "purpose": "Show the full silhouette and fit",
-        "description": "Full-length, model facing the camera, relaxed natural stance, arms loose, garment construction readable",
-        "referenceId": null, "referenceImageIndex": null },
+        "description": "Full-length, head to feet with footwear, even margins above the head and below the feet; eye-level camera, straight on, natural lens look without distortion",
+        "referenceId": null, "referenceImageIndex": null,
+        "direction": {
+          "fixed": "Full-length head to feet, eye-level straight-on camera, front view",
+          "families": [
+            { "key": "relaxed-stand", "label": "Relaxed stand", "energy": "still",
+              "direction": "Weight on one leg, shoulders loose, arms relaxed at the sides or one hand resting at the hip" },
+            { "key": "easy-step", "label": "Easy step", "energy": "dynamic",
+              "direction": "Mid-step toward the camera, arms swinging naturally, the shirt moving with the stride",
+              "favours": ["fluid", "relaxed"] },
+            { "key": "seated-cube", "label": "Seated on the cube", "energy": "still",
+              "direction": "Sitting upright on the edge of the studio cube, legs angled to one side, hands resting on the knees" }
+          ],
+          "vary": ["pose family", "head turn", "hand placement"],
+          "avoid": "Arms covering the front of the shirt"
+        } },
       { "key": "back", "view": "back", "presentation": "on-model",
         "purpose": "Show the back of the shirt",
-        "description": "Full-length from behind, same stance and light as the front photo",
-        "referenceId": null, "referenceImageIndex": null },
+        "description": "Full-length from behind, head to feet, same camera height, distance and light as the front photo",
+        "referenceId": null, "referenceImageIndex": null,
+        "direction": {
+          "fixed": "Full-length from behind, same camera height and distance as the front photo",
+          "families": [
+            { "key": "back-stand", "label": "Standing, back to camera", "energy": "still",
+              "direction": "Standing square to the camera with the back fully visible, arms relaxed" },
+            { "key": "over-shoulder", "label": "Look over the shoulder", "energy": "still",
+              "direction": "Back to the camera, head turned over one shoulder toward the camera, shoulders level",
+              "fixes": ["gaze"] }
+          ],
+          "vary": ["head turn", "arm position"],
+          "avoid": "Turning the body so the back of the shirt is no longer square to the camera"
+        } },
       { "key": "detail", "view": "detail", "presentation": "product-only",
         "purpose": "Show the fabric and finish up close",
-        "description": "Macro of the linen weave and a seam, soft raking light",
+        "description": "Macro of the weave and a seam, filling the frame; camera close and slightly angled, soft raking light",
         "referenceId": null, "referenceImageIndex": null }
     ]
   },
@@ -132,11 +196,11 @@ described in `styling`, and one model is used for the whole production.
 }
 ```
 
-## Example 2: eyewear, constrained hero, a choice of pose
+## Example 2: eyewear, constrained hero, an optional smile
 
 The hero slot accepts only products whose `role` facet is `eyewear`. Use a constraint
-like this only when `vocabulary.products` has products tagged with it. The first photo
-offers a choice of expression.
+like this only when `vocabulary.products` has products tagged with it. The portrait may
+smile on some runs: that is an option, off by default, not part of its description.
 
 ```json
 {
@@ -156,14 +220,35 @@ offers a choice of expression.
     ],
     "heroSlotKey": "frames",
     "modelSlotKey": "model",
-    "variationPolicy": "close",
+    "variationPolicy": "subtle",
+    "direction": {
+      "mode": "directed",
+      "story": "Quiet, close portraits where the frames are the first thing you see",
+      "energy": "Still and composed",
+      "expressions": ["neutral", "calm"],
+      "gazes": ["to camera", "slightly off camera"],
+      "setPieces": [],
+      "smiles": false
+    },
     "shotDirections": [
       { "key": "portrait", "view": "front", "presentation": "on-model",
         "purpose": "Show the frames face-on",
-        "description": "Head-and-shoulders, model facing the camera, frames level, eyes visible through the lenses",
+        "description": "Head-and-shoulders, the frames at the centre of the picture; camera at eye level, straight on, a slightly long lens look",
         "referenceId": null, "referenceImageIndex": null,
+        "direction": {
+          "fixed": "Head-and-shoulders, eye-level straight-on camera, front view",
+          "families": [
+            { "key": "square-on", "label": "Square on", "energy": "still",
+              "direction": "Shoulders square to the camera, chin level, eyes visible through the lenses" },
+            { "key": "hand-at-temple", "label": "Hand at the temple", "energy": "still",
+              "direction": "One hand lightly touching the temple arm, elbow low and out of the centre",
+              "fixes": ["hands"] }
+          ],
+          "vary": ["pose family", "slight head tilt"],
+          "avoid": "Hair, hands or glare covering the frames"
+        },
         "variationOptions": [
-          { "key": "expression", "label": "Expression", "defaultChoice": "neutral", "allowAuto": true,
+          { "key": "expression", "label": "Expression", "defaultChoice": "off", "allowAuto": true,
             "choices": [
               { "key": "neutral", "label": "Neutral", "instruction": "Calm neutral expression, mouth closed" },
               { "key": "smile", "label": "Soft smile", "instruction": "A soft closed-mouth smile" }
@@ -171,11 +256,21 @@ offers a choice of expression.
         ] },
       { "key": "angle", "view": "three-quarter", "presentation": "on-model",
         "purpose": "Show the temple arms and profile",
-        "description": "Head-and-shoulders, head turned three-quarters to the left, the temple arm visible",
-        "referenceId": null, "referenceImageIndex": null },
+        "description": "Head-and-shoulders, the face turned three-quarters so one temple arm is visible; camera at eye level",
+        "referenceId": null, "referenceImageIndex": null,
+        "direction": {
+          "fixed": "Head-and-shoulders, three-quarter view, eye-level camera",
+          "families": [
+            { "key": "three-quarter-still", "label": "Three-quarter, still", "energy": "still",
+              "direction": "Face turned three-quarters, shoulders following the head, gaze past the camera",
+              "fixes": ["gaze"] }
+          ],
+          "vary": ["direction of the turn"],
+          "avoid": "Turning so far that the front of the frames disappears"
+        } },
       { "key": "detail", "view": "detail", "presentation": "product-only",
         "purpose": "Show the hinge and finish",
-        "description": "Macro of the frames folded on the backdrop, focus on the hinge and the frame finish",
+        "description": "Macro of the frames folded on the backdrop, focus on the hinge and the frame finish; camera close, slightly above",
         "referenceId": null, "referenceImageIndex": null }
     ]
   },

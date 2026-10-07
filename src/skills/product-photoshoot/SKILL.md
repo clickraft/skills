@@ -15,7 +15,7 @@ description: |
 
   NOT for: one quick image (use `generate-image`), video ads, thumbnails, Amazon
   compliance listing sets, generic portraits, a reusable catalog Recipe (use
-  `production-recipe`), character sheets (use `character-sheet`).
+  <cli>`production-recipe`</cli><mcp>the recipe_* tools</mcp>), character sheets (use `character-sheet`).
 
 <cli>
   Chain with: `generate-image` for one-off follow-ups. A finished `data.resultUrl` is a

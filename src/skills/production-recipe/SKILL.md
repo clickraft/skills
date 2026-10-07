@@ -49,6 +49,10 @@ So every run of this skill ends with the draft's `webUrl` in your reply.
    its `data.recipe`.
 3. **Write the request file** (Write tool): `{ "recipe": {...}, "bindings": {...} }`.
    Start from `data.example.recipe` or the Recipe you read, and change it to the brief.
+   Write a **directed** Recipe: `recipe.direction`, and on every on-model photo a concept
+   with what stays fixed and 1–4 pose families. A description gives the crop and camera,
+   never a pose. Copy exact poses (`direction.mode: "replay"`) only when the user asks.
+   `data.rules` holds the full contract.
    Field guide and worked examples: [references/recipe-format.md](references/recipe-format.md).
 4. **Create the draft**: `clickraft recipe draft create --file recipe.json --idempotency-key <key> --json`.
    Creating calls no model and charges nothing. Keep `data.id` and `data.webUrl`. Every
