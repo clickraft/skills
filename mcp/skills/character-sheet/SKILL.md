@@ -14,7 +14,7 @@ description: |
   describe one character across several views or poses.
 
   NOT for: a single one-off picture with no multi-view layout (use `generate-image`),
-  video, or a repeatable catalog shoot for many products (use `production-recipe`).
+  video, or a repeatable catalog shoot for many products (use the recipe_* tools).
 
   Chain with: `generate-image` and the video skills — the finished sheet's result URL
   becomes a `referenceImages` entry so later images and clips keep the same character.
@@ -250,7 +250,7 @@ A finished sheet is a consistency asset. Its `resultUrl` is a valid
   instead of re-describing them. Add `products` to put them in the user's product.
 - **Video skills** — use the sheet as a reference for reference-to-video models, or
   render a single-pose still from it first and use that as `startFrame`.
-- **`production-recipe`** — a sheet built on a brand model is a good visual check of the
+- **Production Recipes (the recipe_* tools)** — a sheet built on a brand model is a good visual check of the
   identity before it is used as the model slot of a catalog Recipe.
 
 Tell the user they can keep the sheet link to reuse the character later.

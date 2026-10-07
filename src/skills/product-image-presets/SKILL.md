@@ -14,7 +14,7 @@ description: |
   product", "carousel opener", "unboxing shot".
 
   NOT for: custom product shoots from a written brief (use `product-photoshoot`), a
-  catalog Recipe (use `production-recipe`), an image with no product photo (use
+  catalog Recipe (use <cli>`production-recipe`</cli><mcp>the recipe_* tools</mcp>), an image with no product photo (use
   `generate-image`), product videos, thumbnails.
 
   Chain with: `generate-image` or `product-photoshoot` for follow-ups. A finished

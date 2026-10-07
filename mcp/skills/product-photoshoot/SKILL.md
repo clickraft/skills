@@ -14,7 +14,7 @@ description: |
 
   NOT for: one quick image (use `generate-image`), video ads, thumbnails, Amazon
   compliance listing sets, generic portraits, a reusable catalog Recipe (use
-  `production-recipe`), character sheets (use `character-sheet`).
+  the recipe_* tools), character sheets (use `character-sheet`).
 
   Chain with: `generate-image` for one-off follow-ups. A finished result URL is a valid
   `referenceImages` entry or `startFrame` for the next call.
